@@ -1,8 +1,9 @@
 #include <iostream>
-#include "PixelEngine.h"
+
+#include "src/EditorApplication.h"
 
 int main() {
-    auto* app = new Application();
+    auto* app = new EditorApplication();
     app->Run();
     delete app;
     return 0;
