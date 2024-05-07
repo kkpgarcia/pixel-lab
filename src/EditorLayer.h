@@ -1,42 +1,52 @@
-//
-// Created by kkpga on 5/6/2024.
-//
-
-#ifndef PIXEL_LAB_EDITORLAYER_H
-#define PIXEL_LAB_EDITORLAYER_H
+#pragma once
 
 #include "PixelEngine.h"
+#include "UI/Toolbar.h"
+#include "UI/Menubar.h"
+#include "UI/Viewport.h"
+#include "Editor.h"
+#include "Core/EditorCamera.h"
+#include "Renderer/GeometryPass.h"
+#include "Renderer/LightingPass.h"
+#include "Renderer/DrawPass.h"
+#include "UI/ProjectWindow.h"
+#include "UI/AssetView.h"
+#include "UI/HierarchyView.h"
+#include "UI/InspectorView.h"
+
+enum class SceneState
+{
+	Edit,
+	Play
+};
 
 class EditorLayer : public Layer
 {
 public:
-    EditorLayer();
-    ~EditorLayer() {
-//        delete _camera;
-//        delete _geometryPass;
-//        for (auto& ui : _uiElements)
-//            delete ui;
-    }
+	EditorLayer();
+	~EditorLayer() {
+		delete _camera;
+		delete _geometryPass;
+		for (auto& ui : _uiElements)
+			delete ui;
+	}
 
-    void OnEnable() override;
-    void OnDisable() override;
-    void OnGUI() override;
-    void OnUpdate() override;
+	void OnEnable() override;
+	void OnDisable() override;
+	void OnGUI() override;
+	void OnUpdate() override;
 
-    void OnEvent(Event& e) override;
+	void OnEvent(Event& e) override;
 
 private:
-//    std::vector<UI*> _uiElements;
-//    EditorCamera* _camera;
-//
-//    GeometryPass* _geometryPass;
+	std::vector<UI*> _uiElements;
+	EditorCamera* _camera;
 
-    void OnViewportSizeChanged(const ImVec2& size);
-    void OnWindowClose(WindowCloseEvent& e);
-//    UI* GetUIElement(const std::string& name);
+	GeometryPass* _geometryPass;
 
-//    ProjectWindow* _projectWindow;
+	void OnViewportSizeChanged(const ImVec2& size);
+	void OnWindowClose(WindowCloseEvent& e);
+	UI* GetUIElement(const std::string& name);
+
+	ProjectWindow* _projectWindow;
 };
-
-
-#endif //PIXEL_LAB_EDITORLAYER_H

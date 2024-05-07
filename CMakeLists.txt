@@ -3,16 +3,18 @@ project(pixel_lab)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(pixel_lab main.cpp
-        src/EditorLayer.cpp
-        src/EditorLayer.h
-        src/EditorApplication.h)
+file(GLOB_RECURSE PIXEL_LAB_SOURCES "src/*.cpp")
+file(GLOB_RECURSE PIXEL_LAB_HEADERS "src/*.h")
+add_executable(pixel_lab "main.cpp" "src/pch.cpp" ${PIXEL_LAB_SOURCES} ${PIXEL_LAB_HEADERS})
+
+set_target_properties(pixel_lab PROPERTIES LINK_FLAGS "-mconsole")
 
 set(PIXEL_ENGINE_LIB "${CMAKE_SOURCE_DIR}/vendor/libpixel_engine.a")
 set(PIXEL_ENGINE_INCLUDE_DIR "C:\\Project\\pixel-engine\\src")
 
 target_link_libraries(pixel_lab PRIVATE ${PIXEL_ENGINE_LIB})
-target_include_directories(pixel_lab PRIVATE ${PIXEL_ENGINE_INCLUDE_DIR})
+target_include_directories(pixel_lab PRIVATE ${PIXEL_ENGINE_INCLUDE_DIR} "src")
+target_precompile_headers(pixel_lab PRIVATE "src/pch.h")
 
 #include_directories("${CMAKE_SOURCE_DIR}/vendor/glad/include")
 #target_include_directories(pixel_lab PRIVATE "${CMAKE_SOURCE_DIR}vendor/glad/include")
@@ -40,3 +42,13 @@ set(IMGUI_SOURCES
 )
 add_library(imgui ${IMGUI_SOURCES})
 target_link_libraries(pixel_lab PRIVATE imgui)
+
+find_package(yaml-cpp CONFIG REQUIRED)
+target_link_libraries(pixel_lab PRIVATE yaml-cpp::yaml-cpp)
+
+find_package(assimp CONFIG REQUIRED)
+target_link_libraries(pixel_lab PRIVATE assimp::assimp)
+
+add_custom_command(TARGET pixel_lab POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:pixel_lab>/assets)

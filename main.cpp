@@ -1,10 +1,12 @@
-#include <iostream>
+#include "EditorApplicaiton.h"
 
-#include "src/EditorApplication.h"
+Application* application;
 
-int main() {
-    auto* app = new EditorApplication();
-    app->Run();
-    delete app;
-    return 0;
+int main()
+{
+	application = new EditorApplication();
+	application->Run();
+	delete application;
+
+	return 0;
 }
