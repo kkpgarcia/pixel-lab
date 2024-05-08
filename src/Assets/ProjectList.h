@@ -62,11 +62,13 @@ public:
 			std::string projectName = project["Project Name"].as<std::string>();
 			std::string projectPath = project["Project Path"].as<std::string>();
 
-			if (std::filesystem::exists(projectPath + projectName + "/project.pixellab"))
+            std::string fileName = projectName + ".pixellab";
+
+			if (std::filesystem::exists(projectPath + "/" + fileName))
 			{
 				Project* project = new Project();
 
-				YAML::Node projectYaml = YAML::LoadFile(projectPath + projectName + "/project.pixellab");
+				YAML::Node projectYaml = YAML::LoadFile(projectPath + "/" + fileName);
 				project->Deserialize(projectYaml);
 
 				//YAMLDeserializer projectDeserializer;

@@ -23,7 +23,7 @@ void ProjectWindow::OnGUI()
         {
             if (ImGui::Selectable(project->GetName().c_str()))
             {
-                OpenProject(project->GetPath() + project->GetName());
+                OpenProject(project->GetPath());
             }
         }
 
@@ -37,7 +37,7 @@ void ProjectWindow::OnGUI()
 		{
             std::string path = BrowseFolder("C:");
 
-			if (path.empty()) 
+			if (!path.empty())
             {
 				OpenProject(path);
 			}
@@ -92,9 +92,25 @@ void ProjectWindow::ShowCreateProjectDialog(bool* p_open) {
 
 void ProjectWindow::OpenProject(std::string path)
 {
-	if (std::filesystem::exists(path + "/project.pixellab"))
+    std::cout << "Opening project at: " << path << std::endl;
+
+    //ensure that the path doesn't end with a backslash
+    if (path.back() == '\\')
+    {
+        path.pop_back();
+    }
+
+    //Get the folder name from path
+    std::filesystem::path p = path;
+    std::string folderName = p.filename().string();
+
+    std::string fileName = folderName + ".pixellab";
+
+    std::cout << "Opening project at: " << path + "/" + fileName << std::endl;
+
+	if (std::filesystem::exists(path + "/" + fileName))
 	{
-		TextAsset* projectFile = AssetManager::GetInstance()->Load<TextAsset>(path + "/project.pixellab");
+		TextAsset* projectFile = AssetManager::GetInstance()->Load<TextAsset>(path + "/" + fileName);
 		std::string projectYaml = projectFile->GetTextData();
 
 		YAML::Node yamlFile = YAML::Load(projectYaml);
@@ -116,7 +132,8 @@ void ProjectWindow::OpenProject(std::string path)
 void ProjectWindow::CreateProject(std::string projectName, std::string path)
 {
     Project* project = new Project(projectName, path);
-    const char *projectPath = (project->GetPath()).c_str();
+
+    const char *projectPath = project->GetPath().c_str();
 
     std::cout << "Creating project at: " << projectPath << std::endl;
 
@@ -129,7 +146,8 @@ void ProjectWindow::CreateProject(std::string projectName, std::string path)
         }
         else
         {
-            MessageBoxW(NULL, L"Failed to create project", L"Error", MB_OK | MB_ICONERROR);
+            std::cout << GetLastError() << std::endl;
+            MessageBoxW(NULL, L"Failed to create project: ", L"Error", MB_OK | MB_ICONERROR);
             return;
         }
     }
