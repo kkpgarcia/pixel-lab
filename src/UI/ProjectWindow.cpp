@@ -115,8 +115,34 @@ void ProjectWindow::OpenProject(std::string path)
 
 void ProjectWindow::CreateProject(std::string projectName, std::string path)
 {
-	Project* project = new Project(projectName, path);
-    project->Save();
+    Project* project = new Project(projectName, path);
+    const char *projectPath = (project->GetPath()).c_str();
+
+    std::cout << "Creating project at: " << projectPath << std::endl;
+
+    if (!CreateDirectory(projectPath, NULL))
+    {
+        if (GetLastError() == ERROR_ALREADY_EXISTS)
+        {
+            MessageBoxW(NULL, L"Project already exists", L"Error", MB_OK | MB_ICONERROR);
+            return;
+        }
+        else
+        {
+            MessageBoxW(NULL, L"Failed to create project", L"Error", MB_OK | MB_ICONERROR);
+            return;
+        }
+    }
+    else
+    {
+        YAML::Emitter emitter;
+        project->Serialize(emitter);
+
+        std::cout << project->GetFullPath() << std::endl;
+
+        std::ofstream fout(project->GetFullPath());
+        fout << emitter.c_str();
+    }
 
     //Create project directory
     std::filesystem::create_directory(path + "/" + projectName + "/Assets");
