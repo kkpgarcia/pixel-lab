@@ -12,7 +12,7 @@ void EditorLayer::OnEnable()
 	_uiElements.push_back(new Menubar());
 	_uiElements.push_back(new Viewport());
 	_uiElements.push_back(new Toolbar());
-	_uiElements.push_back(new AssetView());
+	_uiElements.push_back(new ProjectLibrary());
 	_uiElements.push_back(new HierarchyView());
 	_uiElements.push_back(new InspectorView());
 	
