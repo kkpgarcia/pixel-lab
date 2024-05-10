@@ -43,40 +43,37 @@ void ProjectLibrary::ConstructDirectoryTree(const std::string& directory, int le
     // Get all files in the current directory
     for (const auto& entry : std::filesystem::directory_iterator(directory))
     {
-        // Check if the file is a directory
-        if (entry.is_directory())
-        {
-            //Check if path has no more directories
-            if (std::filesystem::directory_iterator(entry.path()) == std::filesystem::directory_iterator())
-            {
-                if (!isRoot) {
-                    ImGui::Indent(level * 5.0f);
-                }
-                if (ImGui::Selectable(entry.path().filename().string().c_str()))
-                {
-                    // Set the current directory to the selected directory
+        if (entry.is_directory()) {
+            if (!isRoot) {
+                ImGui::Indent(level * 5.0f);
+            }
+
+            bool hasSubdirectories = std::any_of(
+                    std::filesystem::directory_iterator(entry.path()),
+                    std::filesystem::directory_iterator(),
+                    [](const auto& e) { return e.is_directory(); }
+            );
+
+            if (hasSubdirectories) {
+                std::string nodeLabel = "##" + entry.path().string();
+                bool nodeOpen = ImGui::TreeNodeEx(nodeLabel.c_str(), ImGuiTreeNodeFlags_None);
+                ImGui::SameLine();
+                if (ImGui::Selectable(entry.path().filename().string().c_str(), false, ImGuiSelectableFlags_None)) {
                     _currentDirectory = entry.path().string();
                 }
-                if (!isRoot) {
-                    ImGui::Unindent(level * 5.0f);
-                }
-            }
-            else {
-                if (!isRoot) {
-                    ImGui::Indent(level * 5.0f);
-                }
-                if (ImGui::TreeNodeEx(entry.path().filename().string().c_str(), ImGuiTreeNodeFlags_SpanAvailWidth)) {
-                    if (ImGui::IsItemClicked())
-                    {
-                        // Set the current directory to the selected directory
-                        _currentDirectory = entry.path().string();
-                    }
+
+                if (nodeOpen) {
                     ConstructDirectoryTree(entry.path().string(), level + 1, false);
                     ImGui::TreePop();
                 }
-                if (!isRoot) {
-                    ImGui::Unindent(level * 5.0f);
+            } else {
+                if (ImGui::Selectable(entry.path().filename().string().c_str(), false, ImGuiSelectableFlags_None)) {
+                    _currentDirectory = entry.path().string();
                 }
+            }
+
+            if (!isRoot) {
+                ImGui::Unindent(level * 5.0f);
             }
         }
     }
@@ -115,31 +112,25 @@ void ProjectLibrary::ConstructAssetGrid(const std::string& directory)
 
     for (const auto& entry : std::filesystem::directory_iterator(directory))
     {
-        if (entry.is_regular_file())
-        {
-            ImGui::Dummy(ImVec2(spacerSize, 0)); // Add spacer before each item
-            ImGui::SameLine();
-            ImGui::TableNextColumn();
-            if (ImGui::Button(entry.path().filename().string().c_str(), ImVec2(100.0f, 100.0f))) {
-                // Handle file selection
+        ImGui::Dummy(ImVec2(spacerSize, 0)); // Add spacer before each item
+        ImGui::SameLine();
+        ImGui::TableNextColumn();
+
+        if (ImGui::Selectable(entry.path().filename().string().c_str(), false, ImGuiSelectableFlags_None, ImVec2(100.0f, 100.0f))) {
+            // Handle file selection
+            if (entry.is_regular_file())
+            {
+
             }
-            if (++column >= columns) {
-                column = 0;
-                ImGui::TableNextRow();
-            }
-        }
-        else if (entry.is_directory())
-        {
-            ImGui::Dummy(ImVec2(spacerSize, 0)); // Add spacer before each item
-            ImGui::SameLine();
-            ImGui::TableNextColumn();
-            if (ImGui::Button(entry.path().filename().string().c_str(), ImVec2(100.0f, 100.0f))) {
+            else if (entry.is_directory())
+            {
                 _currentDirectory = entry.path().string();
             }
-            if (++column >= columns) {
-                column = 0;
-                ImGui::TableNextRow();
-            }
+        }
+
+        if (++column >= columns) {
+            column = 0;
+            ImGui::TableNextRow();
         }
     }
 
