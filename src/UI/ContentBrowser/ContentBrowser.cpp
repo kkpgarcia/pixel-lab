@@ -1,0 +1,265 @@
+#include <filesystem>
+#include "ContentBrowser.h"
+#include "Editor.h"
+
+void ContentBrowser::ConstructIcons(std::string directory) {
+    for (const auto& entry : std::filesystem::directory_iterator(directory))
+    {
+        std::string path = entry.path().string();
+        std::string filename = entry.path().filename().string();
+        if (filename.find(".png") != std::string::npos)
+        {
+            int width, height, channels;
+            unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+
+            if (data)
+            {
+                GLuint textureID;
+                glGenTextures(1, &textureID);
+                glBindTexture(GL_TEXTURE_2D, textureID);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                glGenerateMipmap(GL_TEXTURE_2D);
+                stbi_image_free(data);
+
+                glBindTexture(GL_TEXTURE_2D, 0);
+
+                _iconTextures[filename] = textureID;
+            }
+        }
+    }
+}
+
+void ContentBrowser::OnGUI()
+{
+    Project* currentProject = Editor::GetInstance()->GetProject();
+
+    if (currentProject == nullptr)
+    {
+        ImGui::Text("No project open.");
+        return;
+    }
+
+    ImGui::Begin("Project Library");
+
+    // Create two columns
+    ImGui::Columns(2, "ProjectLibraryColumns", false);
+
+    // Set the width of the first column to be smaller
+    ImGui::SetColumnWidth(0, 150.0f);
+
+    ImGui::Text("Directory");
+    // Content for the first (smaller) column
+    ImGui::BeginChild("Scrolling");
+    ConstructDirectoryTree(currentProject->GetPath(), 0, true);
+    ImGui::EndChild();
+
+    ImGui::NextColumn();
+
+    // Content for the second column
+    ImGui::Text("Files");
+
+    ConstructAssetGrid(_currentDirectory);
+    ImGui::Columns(1); // Reset to one column
+
+    ImGui::End();
+}
+
+void ContentBrowser::ConstructDirectoryTree(const std::string& directory, int level = 0, bool isRoot = true)
+{
+    // Get all files in the current directory
+    for (const auto& entry : std::filesystem::directory_iterator(directory))
+    {
+        if (entry.is_directory()) {
+            if (!isRoot) {
+                ImGui::Indent(level * 5.0f);
+            }
+
+            bool hasSubdirectories = std::any_of(
+                    std::filesystem::directory_iterator(entry.path()),
+                    std::filesystem::directory_iterator(),
+                    [](const auto& e) { return e.is_directory(); }
+            );
+
+            if (hasSubdirectories) {
+                std::string nodeLabel = "##" + entry.path().string();
+                bool nodeOpen = ImGui::TreeNodeEx(nodeLabel.c_str(), ImGuiTreeNodeFlags_None);
+                ImGui::SameLine();
+                if (ImGui::Selectable(entry.path().filename().string().c_str(), false, ImGuiSelectableFlags_None)) {
+                    _currentDirectory = entry.path().string();
+                }
+
+                if (_currentDirectory == entry.path().string()) {
+                    ConstructContextMenu(entry.path().string());
+                }
+
+                if (nodeOpen) {
+                    ConstructDirectoryTree(entry.path().string(), level + 1, false);
+                    ImGui::TreePop();
+                }
+            } else {
+                if (ImGui::Selectable(entry.path().filename().string().c_str(), false, ImGuiSelectableFlags_None)) {
+                    _currentDirectory = entry.path().string();
+                }
+
+                if (_currentDirectory == entry.path().string()) {
+                    ConstructContextMenu(entry.path().string());
+                }
+            }
+
+            if (!isRoot) {
+                ImGui::Unindent(level * 5.0f);
+            }
+        }
+    }
+}
+
+void ContentBrowser::ConstructContextMenu(const std::string &directory) {
+    if (ImGui::BeginPopupContextWindow())
+    {
+        if (ImGui::MenuItem("Create Folder"))
+        {
+            std::string newDirectory = directory + "/New Folder";
+            std::filesystem::create_directory(newDirectory);
+        }
+
+        if (ImGui::MenuItem("Open in Explorer"))
+        {
+            std::string command = "explorer " + directory;
+            system(command.c_str());
+        }
+
+        if (ImGui::MenuItem("Rename"))
+        {
+
+        }
+
+        if (ImGui::MenuItem("Delete"))
+        {
+            if (directory.find("/Assets") != std::string::npos && directory != "/Assets")
+            {
+                if (ImGui::BeginPopup("Delete Directory"))
+                {
+                    ImGui::Text("Are you sure you want to delete this directory?");
+                    if (ImGui::Button("Yes"))
+                    {
+                        std::filesystem::remove_all(directory);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("No"))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+        }
+        ImGui::EndPopup();
+    }
+}
+
+void ContentBrowser::ConstructAssetGrid(const std::string& directory)
+{
+    if (directory.empty())
+    {
+        ImGui::Text("No directory selected.");
+        return;
+    }
+
+    if (!std::filesystem::exists(directory))
+    {
+        ImGui::Text("Directory does not exist.");
+        return;
+    }
+
+    // Get all files in the current directory
+
+    auto files = std::filesystem::directory_iterator(directory);
+
+    if (files == std::filesystem::directory_iterator())
+    {
+        ImGui::Text("No files in directory.");
+        return;
+    }
+
+    float windowWidth = ImGui::GetWindowWidth() - 150.0f;
+    int columns = windowWidth / 100;
+    float spacerSize = (windowWidth - columns * 100) / (columns + 1);
+
+    ImGui::BeginTable("FilesTable", columns);
+    int column = 0;
+
+    for (const auto& entry : std::filesystem::directory_iterator(directory))
+    {
+        ImGui::Dummy(ImVec2(spacerSize, 0)); // Add spacer before each item
+        ImGui::TableNextColumn();
+
+        std::string extension = entry.path().extension().string();
+
+        ImGui::BeginGroup();
+        if (entry.is_regular_file())
+        {
+            extension = ResolveIcons(extension);
+            GLuint iconTexture = _iconTextures[extension + ".png"];
+
+            if (iconTexture == 0)
+            {
+                iconTexture = _iconTextures["unknown.png"];
+            }
+
+            if (ImGui::ImageButton((void*)(intptr_t)iconTexture, ImVec2(100, 100)))
+            {
+
+            }
+        }
+        else if (entry.is_directory())
+        {
+            GLuint iconTexture = _iconTextures["folder.png"];
+            if (ImGui::ImageButton((void*)(intptr_t)iconTexture, ImVec2(100, 100)))
+            {
+                _currentDirectory = entry.path().string();
+            }
+
+        }
+        ImGui::Text("%s", entry.path().filename().string().c_str());
+
+        ImGui::EndGroup();
+
+        if (++column >= columns) {
+            column = 0;
+            ImGui::TableNextRow();
+        }
+    }
+
+    ImGui::EndTable();
+}
+
+std::string ContentBrowser::ResolveIcons(const std::string &extension) {
+
+    if (_iconTextures.count(extension) > 0) {
+        return extension;
+    }
+
+    if (extension.empty()) {
+        return "unknown";
+    }
+
+    if (extension == ".cpp" || extension == ".h" || extension == ".hpp") {
+        return "cpp";
+    }
+
+    if (extension == ".png" || extension == ".jpg" || extension == ".jpeg") {
+        return "image";
+    }
+
+    if (extension == ".text" || extension == ".txt" || extension == ".md") {
+        return "text";
+    }
+
+    return extension;
+}

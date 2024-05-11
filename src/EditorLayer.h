@@ -10,7 +10,7 @@
 #include "Renderer/LightingPass.h"
 #include "Renderer/DrawPass.h"
 #include "UI/ProjectWindow.h"
-#include "UI/ProjectLibrary.h"
+#include "UI/ContentBrowser/ContentBrowser.h"
 #include "UI/HierarchyView.h"
 #include "UI/InspectorView.h"
 

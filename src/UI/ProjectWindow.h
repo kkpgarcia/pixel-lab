@@ -6,7 +6,6 @@
 #include "Windows.h"
 #include "shlobj.h"
 #include "Editor.h"
-#include "File Management/File.h"
 
 #include "Assets/ProjectDatabase.h"
 

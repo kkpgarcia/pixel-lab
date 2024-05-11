@@ -136,7 +136,7 @@ void ProjectWindow::CreateProject(std::string projectName, std::string path)
 
     std::cout << "Creating project at: " << projectPath << std::endl;
 
-    if (!File::CreateDirectoryA(projectPath))
+    if (!CreateDirectory(projectPath, NULL))
     {
         if (GetLastError() == ERROR_ALREADY_EXISTS)
         {
@@ -155,11 +155,13 @@ void ProjectWindow::CreateProject(std::string projectName, std::string path)
         YAML::Emitter emitter;
         project->Serialize(emitter);
 
-        File::SaveFile(project->GetFullPath().c_str(), emitter.c_str());
+        std::ofstream file(project->GetFullPath());
+        file << emitter.c_str();
+        file.close();
     }
 
     //Create project directory
-    File::CreateDirectoryA((path + "/" + projectName + "/Assets").c_str());
+    CreateDirectory((path + "/" + projectName + "/Assets").c_str(), NULL);
 
 	ProjectDatabase::GetInstance()->AddProject(project);
 
