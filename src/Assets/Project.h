@@ -6,9 +6,9 @@
 class Project : public Asset
 {
 public:
-	Project() : Asset(AssetInfo(), AssetType::Project) {}
-	Project(std::string path) : Asset(AssetInfo(path), AssetType::Project) {}
-	Project(std::string projectName, std::string directory) : Asset(AssetInfo(directory + "\\" + projectName + "\\.pixellab" ), AssetType::Project) {
+	Project() : Asset(AssetMetadata(), AssetType::Project) {}
+	Project(std::string path) : Asset(AssetMetadata(path), AssetType::Project) {}
+	Project(std::string projectName, std::string directory) : Asset(AssetMetadata(directory + "\\" + projectName + "\\.pixellab" ), AssetType::Project) {
         _info.SetName(projectName);
     }
 	~Project() = default;

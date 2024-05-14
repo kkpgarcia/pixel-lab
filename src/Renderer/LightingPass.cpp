@@ -2,8 +2,8 @@
 
 LightingPass::LightingPass(GeometryPass& geometryPass) : _geometryPass(geometryPass)
 {
-	ShaderAsset* shaderLightingPass = AssetManager::GetInstance()->Load<ShaderAsset>("assets/shaders/DefferedShadingPass.shader");
-	_shaderLightingPass = shaderLightingPass->GetShaderData();
+	Shader* shaderLightingPass = AssetManager::GetInstance()->Load<Shader>("assets/shaders/DefferedShadingPass.shader");
+	_shaderLightingPass = shaderLightingPass;
 	_shaderLightingPass->Bind();
 
 	_shaderLightingPass->SetInt("gPosition", 0);

@@ -7,23 +7,24 @@
 class ContentBrowser : public UI
 {
 public:
-	ContentBrowser() : UI("Project Library")
+	ContentBrowser() : UI("Content Browser")
     {
         ConstructIcons("assets/icons");
     }
+
 	~ContentBrowser() {}
-
-
 
     void SetCurrentDirectory(const std::string& directory) {
         _currentDirectory = directory;
     }
 
+    //void OnPreRender() override {}
 	void OnGUI() override;
+    //void OnPostRender() override {}
 
 private:
     std::string _currentDirectory;
-    std::map<std::string, GLuint> _iconTextures;
+    std::map<std::string, Texture*> _iconTextures;
     void ConstructIcons(std::string directory);
 
     void ConstructDirectoryTree(const std::string& directory, int level, bool isRoot);

@@ -2,8 +2,6 @@
 
 void HierarchyView::OnGUI()
 {
-    ImGui::Begin("Hierarchy"); // Begin the window
-
     // Root of the hierarchy or scene
     if (ImGui::TreeNode("Root Node"))
     {
@@ -24,6 +22,4 @@ void HierarchyView::OnGUI()
         }
         ImGui::TreePop();
     }
-
-    ImGui::End(); // End the window
 }

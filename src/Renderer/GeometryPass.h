@@ -7,8 +7,8 @@ class GeometryPass : public RenderPass
 public:
 	GeometryPass()
 	{
-		ShaderAsset* shaderGeometryPass = AssetManager::GetInstance()->Load<ShaderAsset>("assets/shaders/GeometryPass.shader");
-		_shaderGeometryPass = shaderGeometryPass->GetShaderData();
+        Shader* shaderGeometryPass = AssetManager::GetInstance()->Load<Shader>("assets/shaders/GeometryPass.shader");
+		_shaderGeometryPass = shaderGeometryPass;
 		_gBuffer = new OpenGLFramebuffer(1024, 1024);
 		_gBuffer->Bind();
 

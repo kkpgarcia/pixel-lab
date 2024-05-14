@@ -1,6 +1,6 @@
 #include "ProjectWindow.h"
 
-ProjectWindow::ProjectWindow() : UI("Project")
+ProjectWindow::ProjectWindow() : UI("Project Window")
 {
 }
 

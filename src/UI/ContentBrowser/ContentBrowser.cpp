@@ -9,27 +9,9 @@ void ContentBrowser::ConstructIcons(std::string directory) {
         std::string filename = entry.path().filename().string();
         if (filename.find(".png") != std::string::npos)
         {
-            int width, height, channels;
-            unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+            auto* texture = AssetManager::GetInstance()->Load<Texture>(path);
 
-            if (data)
-            {
-                GLuint textureID;
-                glGenTextures(1, &textureID);
-                glBindTexture(GL_TEXTURE_2D, textureID);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-                glGenerateMipmap(GL_TEXTURE_2D);
-                stbi_image_free(data);
-
-                glBindTexture(GL_TEXTURE_2D, 0);
-
-                _iconTextures[filename] = textureID;
-            }
+            _iconTextures[filename] = texture;
         }
     }
 }
@@ -44,8 +26,7 @@ void ContentBrowser::OnGUI()
         return;
     }
 
-    ImGui::Begin("Project Library");
-
+    //ImGui::Begin("Content Browser");
     // Create two columns
     ImGui::Columns(2, "ProjectLibraryColumns", false);
 
@@ -65,8 +46,7 @@ void ContentBrowser::OnGUI()
 
     ConstructAssetGrid(_currentDirectory);
     ImGui::Columns(1); // Reset to one column
-
-    ImGui::End();
+    //ImGui::End();
 }
 
 void ContentBrowser::ConstructDirectoryTree(const std::string& directory, int level = 0, bool isRoot = true)
@@ -205,22 +185,22 @@ void ContentBrowser::ConstructAssetGrid(const std::string& directory)
         if (entry.is_regular_file())
         {
             extension = ResolveIcons(extension);
-            GLuint iconTexture = _iconTextures[extension + ".png"];
+            Texture* iconTexture = _iconTextures[extension + ".png"];
 
             if (iconTexture == 0)
             {
                 iconTexture = _iconTextures["unknown.png"];
             }
 
-            if (ImGui::ImageButton((void*)(intptr_t)iconTexture, ImVec2(100, 100)))
+            if (ImGui::ImageButton((void*)(intptr_t)iconTexture->GetID(), ImVec2(100, 100)))
             {
 
             }
         }
         else if (entry.is_directory())
         {
-            GLuint iconTexture = _iconTextures["folder.png"];
-            if (ImGui::ImageButton((void*)(intptr_t)iconTexture, ImVec2(100, 100)))
+            Texture* iconTexture = _iconTextures["folder.png"];
+            if (ImGui::ImageButton((void*)(intptr_t)iconTexture->GetID(), ImVec2(100, 100)))
             {
                 _currentDirectory = entry.path().string();
             }
@@ -259,6 +239,10 @@ std::string ContentBrowser::ResolveIcons(const std::string &extension) {
 
     if (extension == ".text" || extension == ".txt" || extension == ".md") {
         return "text";
+    }
+
+    if (extension == ".vert" || extension == ".frag" || extension == ".shader") {
+        return "shader";
     }
 
     return extension;

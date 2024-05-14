@@ -6,12 +6,9 @@ EditorLayer::EditorLayer()
 
 void EditorLayer::OnEnable() 
 {
-	unsigned int width = Application::Get()->GetWindow()->GetWidth();
-	unsigned int height = Application::Get()->GetWindow()->GetHeight();
-
 	_uiElements.push_back(new Menubar());
 	_uiElements.push_back(new Viewport());
-	_uiElements.push_back(new Toolbar());
+	//_uiElements.push_back(new Toolbar());
 	_uiElements.push_back(new ContentBrowser());
 	_uiElements.push_back(new HierarchyView());
 	_uiElements.push_back(new InspectorView());

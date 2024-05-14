@@ -15,7 +15,9 @@ public:
 	ProjectWindow();// : UI("Project Window") {}
 	~ProjectWindow() {}
 
+    void OnPreRender() override {}
 	void OnGUI() override;
+    void OnPostRender() override {}
 
 private:
 	bool _isVisible = true;

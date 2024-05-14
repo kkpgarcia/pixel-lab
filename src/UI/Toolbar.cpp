@@ -3,6 +3,7 @@
 
 void Toolbar::OnGUI()
 {
+    ImGui::BeginMenuBar();
 	//GUI without header
 	ImGui::Columns(2, "MyColumns", false); // Create 2 columns
 	if (ImGui::Button("Translate"))
@@ -37,4 +38,5 @@ void Toolbar::OnGUI()
 		//m_Scene->SetState(SceneState::Edit);
 		//m_Scene->Reset();
 	}
+    ImGui::EndMenuBar();
 }

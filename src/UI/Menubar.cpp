@@ -108,10 +108,10 @@ void Menubar::OnGUI()
                     {
                         Entity* entity = new Entity();
 
-                        ModelAsset* modelAsset = AssetManager::GetInstance()->Load<ModelAsset>(std::string(fileNameChar));
+                        Model* model = AssetManager::GetInstance()->Load<Model>(std::string(fileNameChar));
 
                         //Model* model = new Model(fileNameChar, RenderSettings{ false });
-                        entity->AddComponent<Model>(modelAsset->GetModelData());
+                        entity->AddComponent<Model>(model);
 
                         Editor::GetInstance()->GetScene()->Add(*entity);
 
