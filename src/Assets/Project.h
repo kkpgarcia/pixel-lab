@@ -12,4 +12,8 @@ public:
         _info.SetName(projectName);
     }
 	~Project() = default;
+
+    static Project* CreateProject(std::string projectName, std::string directory) {
+        return new Project(projectName, directory);
+    }
 };

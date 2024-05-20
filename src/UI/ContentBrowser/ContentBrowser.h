@@ -18,18 +18,17 @@ public:
         _currentDirectory = directory;
     }
 
-    //void OnPreRender() override {}
 	void OnGUI() override;
-    //void OnPostRender() override {}
 
 private:
     std::string _currentDirectory;
     std::map<std::string, Texture*> _iconTextures;
-    void ConstructIcons(std::string directory);
 
+    void ConstructDirectoryPath(const std::string& directory, const std::string& projectName);
+
+    void ConstructIcons(std::string directory);
     void ConstructDirectoryTree(const std::string& directory, int level, bool isRoot);
     void ConstructContextMenu(const std::string& directory);
-
     void ConstructAssetGrid(const std::string& directory);
 
     std::string ResolveIcons(const std::string& extension);

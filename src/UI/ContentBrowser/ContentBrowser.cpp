@@ -1,5 +1,5 @@
-#include <filesystem>
 #include "ContentBrowser.h"
+#include <filesystem>
 #include "Editor.h"
 
 void ContentBrowser::ConstructIcons(std::string directory) {
@@ -43,10 +43,63 @@ void ContentBrowser::OnGUI()
 
     // Content for the second column
     ImGui::Text("Files");
+    ImGui::SameLine();
+
+    ConstructDirectoryPath(_currentDirectory, currentProject->GetName());
+
 
     ConstructAssetGrid(_currentDirectory);
     ImGui::Columns(1); // Reset to one column
     //ImGui::End();
+}
+
+void ContentBrowser::ConstructDirectoryPath(const std::string& directory, const std::string& projectName)
+{
+    std::vector<std::string> stringTokens = StringUtility::SplitString(directory, "\\");
+
+    int index = 0;
+    for (int i = 0; i < stringTokens.size(); i++)
+    {
+        if (stringTokens[i] == projectName)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    std::string baseDirectory;
+
+    for (int i = 0; i < index; i++)
+    {
+        baseDirectory += stringTokens[i] + "\\";
+    }
+
+    stringTokens.erase(stringTokens.begin(), stringTokens.begin() + index);
+
+    for (int i = 0; i < stringTokens.size(); i++)
+    {
+        auto token = stringTokens[i];
+
+        if (token == projectName) continue;
+
+        if (i > 0)
+        {
+            ImGui::SameLine();
+            ImGui::Text("\\");
+            ImGui::SameLine();
+        }
+
+        if (ImGui::Button(stringTokens[i].c_str()))
+        {
+            std::string path;
+            for (int j = 0; j <= i; j++)
+            {
+                path += "\\" + stringTokens[j];
+            }
+
+            _currentDirectory = baseDirectory + path;
+        }
+    }
 }
 
 void ContentBrowser::ConstructDirectoryTree(const std::string& directory, int level = 0, bool isRoot = true)
