@@ -227,46 +227,54 @@ void ContentBrowser::ConstructAssetGrid(const std::string& directory)
     ImGui::BeginTable("FilesTable", columns);
     int column = 0;
 
+    int id = 0;
     for (const auto& entry : std::filesystem::directory_iterator(directory))
     {
+        ImGui::PushID(id++);
         ImGui::Dummy(ImVec2(spacerSize, 0)); // Add spacer before each item
         ImGui::TableNextColumn();
 
         std::string extension = entry.path().extension().string();
 
         ImGui::BeginGroup();
+        Texture* iconTexture;
         if (entry.is_regular_file())
         {
             extension = ResolveIcons(extension);
-            Texture* iconTexture = _iconTextures[extension + ".png"];
+            iconTexture = _iconTextures[extension + ".png"];
 
             if (iconTexture == 0)
             {
                 iconTexture = _iconTextures["unknown.png"];
             }
 
-            if (ImGui::ImageButton((void*)(intptr_t)iconTexture->GetID(), ImVec2(100, 100)))
-            {
+            ImGui::ImageButton((void*)(intptr_t)iconTexture->GetID(), ImVec2(100, 100));
 
-            }
         }
         else if (entry.is_directory())
         {
-            Texture* iconTexture = _iconTextures["folder.png"];
+            iconTexture = _iconTextures["folder.png"];
             if (ImGui::ImageButton((void*)(intptr_t)iconTexture->GetID(), ImVec2(100, 100)))
             {
                 _currentDirectory = entry.path().string();
             }
-
         }
-        ImGui::Text("%s", entry.path().filename().string().c_str());
+        if (ImGui::BeginDragDropSource())
+        {
+            ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", entry.path().string().c_str(), entry.path().string().size(), ImGuiCond_Once);
+            ImGui::ImageButton((void*)(intptr_t)iconTexture->GetID(), ImVec2(50, 50));
+            ImGui::Text("%s", entry.path().filename().string().c_str());
+            ImGui::EndDragDropSource();
+        }
 
+        ImGui::Text("%s", entry.path().filename().string().c_str());
         ImGui::EndGroup();
 
         if (++column >= columns) {
             column = 0;
             ImGui::TableNextRow();
         }
+        ImGui::PopID();
     }
 
     ImGui::EndTable();

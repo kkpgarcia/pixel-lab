@@ -1,4 +1,6 @@
+#include <filesystem>
 #include "Viewport.h"
+#include "Editor.h"
 
 Viewport::Viewport() : UI("Viewport")
 {
@@ -43,6 +45,28 @@ void Viewport::OnGUI()
 	auto texture = _frameBuffer->GetColorTextures()[0]->GetID();
 
 	ImGui::Image((void*)texture, viewportSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM", ImGuiColorEditFlags_NoDragDrop))
+        {
+            if (payload->DataSize > 0)
+            {
+                std::string path = std::string((const char*)payload->Data, payload->DataSize);
+                std::cout << "Dropped file: " << path << std::endl;
+
+                std::filesystem::path p = path;
+                if (p.filename().extension() == ".obj")
+                {
+                    Model* model = AssetManager::GetInstance()->Load<Model>(path);
+                    Entity* entity = new Entity();
+                    entity->AddComponent<Model>(model);
+                    Editor::GetInstance()->GetScene()->Add(*entity);
+                }
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
 }
 
 void Viewport::SetViewportSizeChangedCallback(std::function<void(const ImVec2&)> callback) {

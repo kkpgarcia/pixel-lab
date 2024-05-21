@@ -101,25 +101,10 @@ void Menubar::OnGUI()
                     char* fileNameChar = new char[strlen(ofn.lpstrFile) + 1];
                     strcpy(fileNameChar, ofn.lpstrFile);
 
-                    // Output the converted string
-                    std::cout << "File name: " << fileNameChar << std::endl;
-
-                    for (int i = 0; i < 5; i++)
-                    {
-                        Entity* entity = new Entity();
-
-                        Model* model = AssetManager::GetInstance()->Load<Model>(std::string(fileNameChar));
-
-                        //Model* model = new Model(fileNameChar, RenderSettings{ false });
-                        entity->AddComponent<Model>(model);
-
-                        Editor::GetInstance()->GetScene()->Add(*entity);
-
-						entity->GetTransform()->SetPosition(glm::vec3(0.0f, 0.0f, i * 2.0f));
-                    }
-                   
-
-					
+                    Entity* entity = new Entity();
+                    Model* model = AssetManager::GetInstance()->Load<Model>(std::string(fileNameChar));
+                    entity->AddComponent<Model>(model);
+                    Editor::GetInstance()->GetScene()->Add(*entity);
 
                     // Don't forget to free the allocated memory
                     delete[] fileNameChar;
