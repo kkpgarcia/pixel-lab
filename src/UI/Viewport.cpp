@@ -29,6 +29,7 @@ Viewport::Viewport() : UI("Viewport")
 
 void Viewport::OnGUI()
 {
+    UI::OnGUI();
 	_windowSize = ImGui::GetWindowSize();
 	_windowPos = ImGui::GetWindowPos();
 

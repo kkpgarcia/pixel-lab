@@ -85,7 +85,7 @@ void ContentBrowser::ConstructDirectoryPath(const std::string& directory, const 
         if (i > 0)
         {
             ImGui::SameLine();
-            ImGui::Text("\\");
+            ImGui::Text(">");
             ImGui::SameLine();
         }
 
@@ -259,6 +259,7 @@ void ContentBrowser::ConstructAssetGrid(const std::string& directory)
                 _currentDirectory = entry.path().string();
             }
         }
+
         if (ImGui::BeginDragDropSource())
         {
             ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", entry.path().string().c_str(), entry.path().string().size(), ImGuiCond_Once);
