@@ -1,5 +1,28 @@
 #include "GeometryPass.h"
 
+GeometryPass::GeometryPass()
+{
+    Shader* shaderGeometryPass = AssetManager::GetInstance()->Load<Shader>("assets/shaders/GeometryPass.shader");
+    _shaderGeometryPass = shaderGeometryPass;
+
+    FramebufferSpecification gBufferSpec;
+    gBufferSpec.Width = 1024;
+    gBufferSpec.Height = 1024;
+    gBufferSpec.Attachments = {
+            FramebufferTextureFormat::RGBA16F,
+            FramebufferTextureFormat::RGBA16F,
+            FramebufferTextureFormat::RGBA8
+    };
+
+    _gBuffer = Framebuffer::Create(gBufferSpec);
+    _gBuffer->Bind();
+
+    OpenGLRenderbuffer* renderBufferDepth = new OpenGLRenderbuffer(1024, 1024, TextureFormat::Depth);
+
+    _gBuffer->AttachRenderbuffer(renderBufferDepth);
+    _gBuffer->Unbind();
+}
+
 void GeometryPass::Setup()
 {
 }

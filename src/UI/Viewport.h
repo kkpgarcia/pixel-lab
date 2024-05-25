@@ -13,11 +13,11 @@ public:
 
 	void OnGUI() override;
 
-	OpenGLFramebuffer* GetFramebuffer() const { return _frameBuffer; }
+    Framebuffer* GetFramebuffer() const { return _frameBuffer; }
 
 	void SetViewportSizeChangedCallback(std::function<void(const ImVec2&)> callback);
 private:
-	OpenGLFramebuffer* _frameBuffer;
+	Framebuffer* _frameBuffer;
 
 	ImVec2 _prevViewportSize;
 	std::function<void(const ImVec2&)> _viewportSizeChangedCallback;

@@ -4,25 +4,17 @@
 
 Viewport::Viewport() : UI("Viewport")
 {
-	_frameBuffer = new OpenGLFramebuffer(1280, 720);
+    FramebufferSpecification spec;
+
+    spec.Width = 1280;
+    spec.Height = 720;
+    spec.Attachments = { { FramebufferTextureFormat::RGBA8 } };
+
+	_frameBuffer = Framebuffer::Create(spec);
 	_frameBuffer->Bind();
 
-	OpenGLTexture* viewportTexture = new OpenGLTexture({
-		_frameBuffer->GetWidth(),
-		_frameBuffer->GetHeight(),
-		4,
-		TextureType::None,
-		ImageFormat::RGBA,
-		false,
-		TextureSpecification::Texture2D,
-		FilterSettings{ TextureFilter::Nearest, TextureFilter::Nearest },
-		WrapSettings{ TextureWrap::ClampToEdge, TextureWrap::ClampToEdge },
-		DataType::UnsignedByte
-		});
+	OpenGLRenderbuffer* viewportRenderBuffer = new OpenGLRenderbuffer(_frameBuffer->GetWidth(), _frameBuffer->GetHeight(), TextureFormat::Depth);
 
-	OpenGLRenderbuffer* viewportRenderBuffer = new OpenGLRenderbuffer(_frameBuffer->GetWidth(), _frameBuffer->GetHeight(), ImageFormat::Depth);
-
-	_frameBuffer->AttachColorTexture(viewportTexture);
 	_frameBuffer->AttachRenderbuffer(viewportRenderBuffer);
 	_frameBuffer->Unbind();
 }

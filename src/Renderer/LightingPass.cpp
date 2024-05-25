@@ -45,7 +45,7 @@ void LightingPass::Render(Scene& scene, Camera& camera)
 	OpenGLRenderer::Clear(ClearFlags::ColorBuffer | ClearFlags::DepthBuffer);
 	_shaderLightingPass->Bind();
 
-	std::vector<OpenGLTexture*> textures = _geometryPass.GetBuffer()->GetColorTextures();
+	std::vector<Texture*> textures = _geometryPass.GetBuffer()->GetColorTextures();
 	for (int i = 0; i < textures.size(); i++)
 	{
 		textures[i]->Bind(i);

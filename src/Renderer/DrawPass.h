@@ -5,15 +5,15 @@
 class DrawPass : public RenderPass
 {
 public:
-	DrawPass(OpenGLFramebuffer& gBuffer, OpenGLFramebuffer& drawBuffer);
+	DrawPass(Framebuffer& gBuffer, Framebuffer& drawBuffer);
 
 	void Setup() override;
 	void Render(Scene& scene, Camera& camera) override;
 	void Cleanup() override;
 
 private:
-	OpenGLFramebuffer& _drawBuffer;
-	OpenGLFramebuffer& _gBuffer;
+	Framebuffer& _drawBuffer;
+	Framebuffer& _gBuffer;
 	unsigned int _quadVAO = 0;
 	unsigned int _quadVBO = 0;
 };

@@ -1,6 +1,6 @@
 #include "DrawPass.h"
 
-DrawPass::DrawPass(OpenGLFramebuffer& gBuffer, OpenGLFramebuffer& drawBuffer) : _gBuffer(gBuffer), _drawBuffer(drawBuffer)
+DrawPass::DrawPass(Framebuffer& gBuffer, Framebuffer& drawBuffer) : _gBuffer(gBuffer), _drawBuffer(drawBuffer)
 {
 	float quadVertices[] = {
 		// positions        // texture Coords
