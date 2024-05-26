@@ -10,6 +10,8 @@ public:
 	void OnUpdate() override;
 	void OnEvent(Event& e);
 	void ToggleInteractions(bool enable) { _isInteracting = enable; }
+
+    bool IsInteracting() { return _isInteracting; }
 private:
 	float _movementSpeed = 2.0f;
 	float _rotationSpeed = 1.0f;

@@ -11,6 +11,8 @@ public:
 
 	~UI() = default;
 
+    virtual void Update() {};
+
 	virtual void OnPreRender() {
 		ImGui::Begin(_name, nullptr, WindowFlags());
 	}

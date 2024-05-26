@@ -1,4 +1,5 @@
 #include "EditorLayer.h"
+#include "Renderer/SelectionPass.h"
 
 EditorLayer::EditorLayer() 
 {
@@ -18,18 +19,19 @@ void EditorLayer::OnEnable()
 	Editor::GetInstance()->SetScene(new Scene());
 
 	_geometryPass = new GeometryPass();
-	Viewport* viewport = dynamic_cast<Viewport*>(GetUIElement("Viewport"));
+    Viewport* viewport = dynamic_cast<Viewport*>(GetUIElement("Viewport"));
 
 	OpenGLRenderer::AddPass(_geometryPass);
 	OpenGLRenderer::AddPass(new LightingPass(*_geometryPass));
 	OpenGLRenderer::AddPass(new DrawPass(*_geometryPass->GetBuffer(), *viewport->GetFramebuffer()));
+    OpenGLRenderer::AddPass(new SelectionPass(*viewport->GetFramebuffer()));
 
 	OpenGLRenderer::Init();
 	
 	_camera = new EditorCamera(1024, 1024, 45.0f, 0.1f, 1000.0f);
 	_camera->GetTransform().SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 
-	viewport->SetViewportSizeChangedCallback([&](const ImVec2& newSize) {
+    viewport->SetViewportSizeChangedCallback([&](const ImVec2& newSize) {
 		_geometryPass->GetBuffer()->Resize(newSize.x, newSize.y);
 		_camera->SetProjection(newSize.x, newSize.y, 45.0f, 0.1f, 1000.0f);
 	});
@@ -38,8 +40,13 @@ void EditorLayer::OnEnable()
 void EditorLayer::OnDisable() {}
 void EditorLayer::OnUpdate() 
 {
+    for (auto& uiElement : _uiElements)
+    {
+        uiElement->Update();
+    }
+
 	Viewport* viewport = dynamic_cast<Viewport*>(GetUIElement("Viewport"));
-	_camera->ToggleInteractions(viewport->IsMouseOverWindow() && viewport->IsWindowFocused());
+    _camera->ToggleInteractions(viewport->IsMouseOverWindow() && viewport->IsWindowFocused());
 	_camera->OnUpdate();
 
 	OpenGLRenderer::Render(*Editor::GetInstance()->GetScene(), *_camera);

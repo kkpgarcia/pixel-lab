@@ -11,9 +11,10 @@ public:
 		delete _frameBuffer;
 	}
 
+    void Update() override;
 	void OnGUI() override;
 
-    Framebuffer* GetFramebuffer() const { return _frameBuffer; }
+    [[nodiscard]] Framebuffer* GetFramebuffer() const { return _frameBuffer; }
 
 	void SetViewportSizeChangedCallback(std::function<void(const ImVec2&)> callback);
 private:
@@ -21,4 +22,6 @@ private:
 
 	ImVec2 _prevViewportSize;
 	std::function<void(const ImVec2&)> _viewportSizeChangedCallback;
+
+    glm::vec2 _viewportBounds[2];
 };

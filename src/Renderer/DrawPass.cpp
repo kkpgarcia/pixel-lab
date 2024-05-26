@@ -28,6 +28,9 @@ void DrawPass::Setup()
 void DrawPass::Render(Scene& scene, Camera& camera)
 {
 	_drawBuffer.Bind();
+    GLenum drawBuffer = GL_COLOR_ATTACHMENT0;
+    glDrawBuffers(1, &drawBuffer);
+
 	glBindVertexArray(_quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);

@@ -68,6 +68,8 @@ void LightingPass::Render(Scene& scene, Camera& camera)
 	}
 
 	_shaderLightingPass->SetVec3("viewPos", camera.GetTransform().GetPosition());
+
+    //we don't need to unbind this shader because it will be unbound in the next pass
 }
 
 void LightingPass::Cleanup()
