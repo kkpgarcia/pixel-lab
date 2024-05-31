@@ -25,7 +25,6 @@ class EditorLayer : public Layer
 public:
 	EditorLayer();
 	~EditorLayer() {
-		delete _camera;
 		delete _geometryPass;
 		for (auto& ui : _uiElements)
 			delete ui;
@@ -38,9 +37,10 @@ public:
 
 	void OnEvent(Event& e) override;
 
+    void EditTransform(const glm::mat4& transform);
+
 private:
 	std::vector<UI*> _uiElements;
-	EditorCamera* _camera;
 
 	GeometryPass* _geometryPass;
 

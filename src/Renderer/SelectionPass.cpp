@@ -32,7 +32,7 @@ void SelectionPass::Render(Scene &scene, Camera &camera)
         {
             Transform* transform = pair.second->GetComponent<Transform>();
             _shaderSelectionPass->SetMat4("model", transform->GetModelMatrix());
-            _shaderSelectionPass->SetInt("objectID", pair.first.ToInt());
+            _shaderSelectionPass->SetInt("objectID", (int)pair.second->GetUUID());
 
             for (Mesh& mesh : model->GetMeshes())
             {

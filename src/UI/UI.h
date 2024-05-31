@@ -28,6 +28,8 @@ public:
 		ImGui::End();
 	}
 
+    virtual void OnEvent(Event& e) {}
+
 	unsigned int GetWindowWidth() const { return _windowSize.x; }
 	unsigned int GetWindowHeight() const { return _windowSize.y; }
 

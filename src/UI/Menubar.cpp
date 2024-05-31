@@ -106,6 +106,8 @@ void Menubar::OnGUI()
                     entity->AddComponent<Model>(model);
                     Editor::GetInstance()->GetScene()->Add(*entity);
 
+                    std::cout << "Imported file: " << entity->GetUUID() << std::endl;
+
                     // Don't forget to free the allocated memory
                     delete[] fileNameChar;
                 }

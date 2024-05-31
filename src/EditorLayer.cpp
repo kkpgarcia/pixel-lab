@@ -1,5 +1,6 @@
 #include "EditorLayer.h"
 #include "Renderer/SelectionPass.h"
+#include "ImGuizmo.h"
 
 EditorLayer::EditorLayer() 
 {
@@ -27,13 +28,9 @@ void EditorLayer::OnEnable()
     OpenGLRenderer::AddPass(new SelectionPass(*viewport->GetFramebuffer()));
 
 	OpenGLRenderer::Init();
-	
-	_camera = new EditorCamera(1024, 1024, 45.0f, 0.1f, 1000.0f);
-	_camera->GetTransform().SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 
     viewport->SetViewportSizeChangedCallback([&](const ImVec2& newSize) {
 		_geometryPass->GetBuffer()->Resize(newSize.x, newSize.y);
-		_camera->SetProjection(newSize.x, newSize.y, 45.0f, 0.1f, 1000.0f);
 	});
 }
 
@@ -46,10 +43,7 @@ void EditorLayer::OnUpdate()
     }
 
 	Viewport* viewport = dynamic_cast<Viewport*>(GetUIElement("Viewport"));
-    _camera->ToggleInteractions(viewport->IsMouseOverWindow() && viewport->IsWindowFocused());
-	_camera->OnUpdate();
-
-	OpenGLRenderer::Render(*Editor::GetInstance()->GetScene(), *_camera);
+	OpenGLRenderer::Render(*Editor::GetInstance()->GetScene(), *viewport->GetCamera());
 }
 
 void EditorLayer::OnGUI() 
@@ -124,7 +118,10 @@ void EditorLayer::OnGUI()
 }
 
 void EditorLayer::OnEvent(Event& e) {
-	_camera->OnEvent(e);
+    for (auto& uiElement : _uiElements)
+    {
+        uiElement->OnEvent(e);
+    }
 
 	EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT(EditorLayer::OnWindowClose));
@@ -132,7 +129,6 @@ void EditorLayer::OnEvent(Event& e) {
 
 void EditorLayer::OnViewportSizeChanged(const ImVec2& size)
 {
-	_camera->SetProjection(size.x, size.y, 45.0f, 0.1f, 1000.0f);
 	_geometryPass->GetBuffer()->Resize(size.x, size.y);
 }
 
@@ -149,4 +145,9 @@ UI* EditorLayer::GetUIElement(const std::string& name)
 			return uiElement;
 	}
 	return nullptr;
+}
+
+void EditorLayer::EditTransform(const glm::mat4 &transform)
+{
+
 }

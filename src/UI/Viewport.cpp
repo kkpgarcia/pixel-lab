@@ -1,6 +1,7 @@
 #include <filesystem>
 #include "Viewport.h"
 #include "Editor.h"
+#include <ImGuizmo.h>
 
 Viewport::Viewport() : UI("Viewport")
 {
@@ -29,10 +30,16 @@ Viewport::Viewport() : UI("Viewport")
         std::cout << "Color Attachment " << i << " Height: " << texture->GetHeight() << std::endl;
         std::cout << "Color Attachment " << i << " Format: " << formatString << std::endl;
     }
+
+    _camera = new EditorCamera(1024, 1024, 45.0f, 0.1f, 1000.0f);
+    _camera->GetTransform().SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 }
 
 void Viewport::Update()
 {
+    _camera->ToggleInteractions(IsMouseOverWindow() && IsWindowFocused());
+    _camera->OnUpdate();
+
     _frameBuffer->Bind();
     auto[mx,my] = ImGui::GetMousePos();
     mx -= _viewportBounds[0].x;
@@ -49,10 +56,14 @@ void Viewport::Update()
 
         if (ImGui::IsMouseClicked(0))
         {
-            std::cout << "Pixel Data: " << data << std::endl;
+            //std::cout << "Pixel Data: " << data << std::endl;
 
             if (data == 0)
                 return;
+
+            auto uniqueID = (UniqueID)data;
+
+            //std::cout << "Entity ID: " << uniqueID << std::endl;
         }
     }
     _frameBuffer->Unbind();
@@ -71,7 +82,10 @@ void Viewport::OnGUI()
 		_frameBuffer->Resize(viewportSize.x, viewportSize.y);
 		_prevViewportSize = viewportSize;
 		if (_viewportSizeChangedCallback)
+        {
 			_viewportSizeChangedCallback(viewportSize);
+            _camera->SetProjection(viewportSize.x, viewportSize.y, 45.0f, 0.1f, 1000.0f);
+        }
 	}
 
     auto viewportOffset = ImGui::GetCursorPos();
@@ -109,8 +123,91 @@ void Viewport::OnGUI()
         }
         ImGui::EndDragDropTarget();
     }
+
+    //Gizmos
+
+    glm::mat4 view = glm::inverse(_camera->GetTransform().GetModelMatrix());
+    glm::mat4 projection = _camera->GetProjection();
+
+    if (Editor::GetInstance()->GetScene() != nullptr)
+    {
+        auto entityMap = Editor::GetInstance()->GetScene()->GetEntities();
+
+        if (!entityMap.empty())
+        {
+            auto firstEntity = entityMap.begin()->second;
+
+            if (firstEntity != nullptr)
+            {
+                auto transform = firstEntity->GetComponent<Transform>();
+
+                if (transform != nullptr)
+                {
+                    //glm::mat4 dummyTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0.0f));
+
+                    glm::mat4 model = transform->GetModelMatrix();
+
+
+                    ImGuizmo::SetOrthographic(false);
+                    ImGuizmo::SetDrawlist();
+
+                    ImGuizmo::SetRect(viewportMinBound.x,
+                                      viewportMinBound.y,
+                                      viewportSize.x,
+                                      viewportSize.y);
+
+                    ImGuizmo::Manipulate(glm::value_ptr(view),
+                                         glm::value_ptr(projection),
+                                         ImGuizmo::OPERATION::TRANSLATE,
+                                         ImGuizmo::MODE::LOCAL,
+                                         glm::value_ptr(model));
+
+                    glm::vec3 gizmoPosition, gizmoRotation, gizmoScale;
+                    Math::DecomposeTransform(model, gizmoPosition, gizmoRotation, gizmoScale);
+
+                    if (ImGuizmo::IsUsing()) {
+                        std :: cout << "Using" << std :: endl;
+                        glm::vec3 translation, rotation, scale;
+                        Math::DecomposeTransform(model, translation, rotation, scale);
+
+                        transform->SetPosition(translation);
+                        transform->SetRotation(rotation);
+                        transform->SetScale(scale);
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    // Debug
+    ImGui::Begin("Engine Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);// Get the size of the overlay
+    ImVec2 overlaySize = ImGui::GetWindowSize();
+    ImVec2 overlayPos = ImVec2(_windowPos.x + _windowSize.x - overlaySize.x, _windowPos.y + 30); // Calculate the position of the overlay
+
+    ImGui::SetWindowPos(overlayPos);
+
+    ImGui::Text("Viewport Postion: %f, %f", _windowPos.x, _windowPos.y);
+    ImGui::Text("Viewport Size: %f x %f", _windowSize.x, _windowSize.y);
+    ImGui::Text("Camera Position: %f, %f, %f", _camera->GetTransform().GetPosition().x, _camera->GetTransform().GetPosition().y, _camera->GetTransform().GetPosition().z);
+    ImGui::Text("Is Mouse Over: %d", IsMouseOverWindow());
+    ImGui::Text("Is Window Focused: %d", IsWindowFocused());
+    ImGui::Text("Mouse Position: %f, %f", ImGui::GetMousePos().x, ImGui::GetMousePos().y);
+    ImGui::Text(ImGuizmo::IsOver() ? "Over gizmo":"Not over gizmo");
+    ImGui::Text(ImGuizmo::IsOver(ImGuizmo::TRANSLATE) ? "Over translate gizmo" : "Not Interacting with translate gizmo");
+
+    // End overlay
+    ImGui::End();
+
+    
 }
 
 void Viewport::SetViewportSizeChangedCallback(std::function<void(const ImVec2&)> callback) {
 	_viewportSizeChangedCallback = std::move(callback);
+}
+
+void Viewport::OnEvent(Event& e)
+{
+    _camera->OnEvent(e);
 }

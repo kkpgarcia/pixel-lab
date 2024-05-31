@@ -49,6 +49,14 @@ target_link_libraries(pixel_lab PRIVATE yaml-cpp::yaml-cpp)
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(pixel_lab PRIVATE assimp::assimp)
 
+include_directories("vendor/ImGuizmo")
+set(IMGUIZMO_SOURCES
+        "vendor/ImGuizmo/ImGuizmo.cpp"
+)
+
+add_library(imguizmo ${IMGUIZMO_SOURCES})
+target_link_libraries(pixel_lab PRIVATE imguizmo)
+
 add_custom_command(TARGET pixel_lab POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:pixel_lab>/assets)

@@ -13,4 +13,7 @@ public:
 private:
     Framebuffer& _viewportFramebuffer;
     Shader* _shaderSelectionPass;
+
+    unsigned int _quadVAO = 0;
+    unsigned int _quadVBO = 0;
 };
