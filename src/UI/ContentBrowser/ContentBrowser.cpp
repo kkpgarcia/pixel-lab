@@ -87,7 +87,9 @@ void ContentBrowser::ConstructDirectoryPath(const std::string& directory, const 
             std::string path;
             for (int j = 0; j <= i; j++)
             {
-                path += "\\" + stringTokens[j];
+                if (j > 0)
+                    path += "\\";
+                path += stringTokens[j];
             }
 
             _currentDirectory = baseDirectory + path;
