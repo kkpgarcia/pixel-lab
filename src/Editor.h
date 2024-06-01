@@ -6,14 +6,17 @@
 class Editor
 {
 public:
-	static Editor* GetInstance() { return &_instance; }
-	void SetProject(Project* project);
-	void SetScene(Scene* scene);
-	Scene* GetScene() { return _scene; }
-	Project* GetProject() { return _project; }
-	bool IsProjectOpen() { return _project != nullptr; }
+    static void SetProject(Project* project);
+    static void SetScene(Scene* scene);
+    static Scene*  GetScene() { return _scene; }
+    static Project* GetProject() { return _project; }
+    static bool IsProjectOpen() { return _project != nullptr; }
+    static void SetCurrentSelection(UniqueID id);
+    static UniqueID GetCurrentSelection() { return _currentSelection; }
 private:
-	static Editor _instance;
-	Scene* _scene;
-	Project* _project;
+    static Scene* _scene;
+    static Project* _project;
+
+    //Maybe this can contain it?
+    static UniqueID _currentSelection;
 };

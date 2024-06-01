@@ -117,7 +117,7 @@ void ProjectWindow::OpenProject(std::string path)
         Project* project = new Project();
         project->Deserialize(yamlFile);
 
-		Editor::GetInstance()->SetProject(project);
+		Editor::SetProject(project);
 
 		this->_isVisible = false;
 
@@ -165,7 +165,7 @@ void ProjectWindow::CreateProject(std::string projectName, std::string path)
 
 	ProjectDatabase::GetInstance()->AddProject(project);
 
-    Editor::GetInstance()->SetProject(project);
+    Editor::SetProject(project);
 
 	this->_isVisible = false;
 }

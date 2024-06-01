@@ -7,11 +7,11 @@ void Menubar::OnGUI()
         if (ImGui::BeginMenu("File")) {
 			if (ImGui::MenuItem("Open Project")) {
 				// Handle Open Project action
-				Project* currentProject = Editor::GetInstance()->GetProject();
+				Project* currentProject = Editor::GetProject();
 				if (currentProject != nullptr)
 				{
 					// Close the current project
-					Editor::GetInstance()->SetProject(nullptr);
+					Editor::SetProject(nullptr);
 				}
 			}
             if (ImGui::MenuItem("Open", "Ctrl+O")) {
@@ -34,7 +34,7 @@ void Menubar::OnGUI()
 					// Output the converted string
 					std::cout << "File name: " << fileNameChar << std::endl;
 
-					Editor::GetInstance()->GetScene()->Deserialize(fileNameChar);
+					Editor::GetScene()->Deserialize(fileNameChar);
 					// Don't forget to free the allocated memory
 					delete[] fileNameChar;
 				}
@@ -59,7 +59,7 @@ void Menubar::OnGUI()
 					// Output the converted string
 					std::cout << "File name: " << fileNameChar << std::endl;
 
-					Editor::GetInstance()->GetScene()->Serialize(fileNameChar);
+					Editor::GetScene()->Serialize(fileNameChar);
 					// Don't forget to free the allocated memory
 					delete[] fileNameChar;
 				}
@@ -104,7 +104,7 @@ void Menubar::OnGUI()
                     Entity* entity = new Entity();
                     Model* model = AssetManager::GetInstance()->Load<Model>(std::string(fileNameChar));
                     entity->AddComponent<Model>(model);
-                    Editor::GetInstance()->GetScene()->Add(*entity);
+                    Editor::GetScene()->Add(*entity);
 
                     std::cout << "Imported file: " << entity->GetUUID() << std::endl;
 

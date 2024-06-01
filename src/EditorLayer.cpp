@@ -1,6 +1,5 @@
 #include "EditorLayer.h"
 #include "Renderer/SelectionPass.h"
-#include "ImGuizmo.h"
 
 EditorLayer::EditorLayer() 
 {
@@ -10,14 +9,13 @@ void EditorLayer::OnEnable()
 {
 	_uiElements.push_back(new Menubar());
 	_uiElements.push_back(new Viewport());
-	//_uiElements.push_back(new Toolbar());
 	_uiElements.push_back(new ContentBrowser());
 	_uiElements.push_back(new HierarchyView());
 	_uiElements.push_back(new InspectorView());
 	
 	_projectWindow = new ProjectWindow();
 
-	Editor::GetInstance()->SetScene(new Scene());
+	Editor::SetScene(new Scene());
 
 	_geometryPass = new GeometryPass();
     Viewport* viewport = dynamic_cast<Viewport*>(GetUIElement("Viewport"));
@@ -30,7 +28,7 @@ void EditorLayer::OnEnable()
 	OpenGLRenderer::Init();
 
     viewport->SetViewportSizeChangedCallback([&](const ImVec2& newSize) {
-		_geometryPass->GetBuffer()->Resize(newSize.x, newSize.y);
+        OnViewportSizeChanged(newSize);
 	});
 }
 
@@ -43,12 +41,12 @@ void EditorLayer::OnUpdate()
     }
 
 	Viewport* viewport = dynamic_cast<Viewport*>(GetUIElement("Viewport"));
-	OpenGLRenderer::Render(*Editor::GetInstance()->GetScene(), *viewport->GetCamera());
+	OpenGLRenderer::Render(*Editor::GetScene(), *viewport->GetCamera());
 }
 
 void EditorLayer::OnGUI() 
 {
-	if (!Editor::GetInstance()->IsProjectOpen())
+	if (!Editor::IsProjectOpen())
 	{
 		_projectWindow->OnPreRender();
 		_projectWindow->OnGUI();
@@ -145,9 +143,4 @@ UI* EditorLayer::GetUIElement(const std::string& name)
 			return uiElement;
 	}
 	return nullptr;
-}
-
-void EditorLayer::EditTransform(const glm::mat4 &transform)
-{
-
 }

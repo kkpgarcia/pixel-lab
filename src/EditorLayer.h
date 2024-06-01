@@ -37,8 +37,6 @@ public:
 
 	void OnEvent(Event& e) override;
 
-    void EditTransform(const glm::mat4& transform);
-
 private:
 	std::vector<UI*> _uiElements;
 

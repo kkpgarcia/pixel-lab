@@ -18,7 +18,7 @@ void ContentBrowser::ConstructIcons(std::string directory) {
 
 void ContentBrowser::OnGUI()
 {
-    Project* currentProject = Editor::GetInstance()->GetProject();
+    Project* currentProject = Editor::GetProject();
 
     if (currentProject == nullptr)
     {
@@ -26,22 +26,16 @@ void ContentBrowser::OnGUI()
         return;
     }
 
-    //ImGui::Begin("Content Browser");
-    // Create two columns
     ImGui::Columns(2, "ProjectLibraryColumns", false);
-
-    // Set the width of the first column to be smaller
     ImGui::SetColumnWidth(0, 150.0f);
 
     ImGui::Text("Directory");
-    // Content for the first (smaller) column
     ImGui::BeginChild("Scrolling");
     ConstructDirectoryTree(currentProject->GetPath(), 0, true);
     ImGui::EndChild();
 
     ImGui::NextColumn();
 
-    // Content for the second column
     ImGui::Text("Files");
     ImGui::SameLine();
 
@@ -49,8 +43,7 @@ void ContentBrowser::OnGUI()
 
 
     ConstructAssetGrid(_currentDirectory);
-    ImGui::Columns(1); // Reset to one column
-    //ImGui::End();
+    ImGui::Columns(1);
 }
 
 void ContentBrowser::ConstructDirectoryPath(const std::string& directory, const std::string& projectName)
