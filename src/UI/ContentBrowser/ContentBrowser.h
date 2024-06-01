@@ -9,7 +9,7 @@ class ContentBrowser : public UI
 public:
 	ContentBrowser() : UI("Content Browser")
     {
-        ConstructIcons("assets/icons");
+        ConstructIcons("assets/icons/content_browser");
     }
 
 	~ContentBrowser() {}

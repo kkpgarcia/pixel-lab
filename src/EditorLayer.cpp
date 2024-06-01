@@ -7,18 +7,20 @@ EditorLayer::EditorLayer()
 
 void EditorLayer::OnEnable() 
 {
+    auto viewport = new Viewport();
+
 	_uiElements.push_back(new Menubar());
-	_uiElements.push_back(new Viewport());
+	_uiElements.push_back(viewport);
 	_uiElements.push_back(new ContentBrowser());
 	_uiElements.push_back(new HierarchyView());
 	_uiElements.push_back(new InspectorView());
+
 	
 	_projectWindow = new ProjectWindow();
 
 	Editor::SetScene(new Scene());
 
 	_geometryPass = new GeometryPass();
-    Viewport* viewport = dynamic_cast<Viewport*>(GetUIElement("Viewport"));
 
 	OpenGLRenderer::AddPass(_geometryPass);
 	OpenGLRenderer::AddPass(new LightingPass(*_geometryPass));

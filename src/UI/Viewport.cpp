@@ -1,7 +1,6 @@
 #include <filesystem>
 #include "Viewport.h"
 #include "Editor.h"
-#include <ImGuizmo.h>
 
 Viewport::Viewport() : UI("Viewport")
 {
@@ -19,20 +18,28 @@ Viewport::Viewport() : UI("Viewport")
 	_frameBuffer->AttachRenderbuffer(viewportRenderBuffer);
 	_frameBuffer->Unbind();
 
-
-    for (int i = 0; i < _frameBuffer->GetColorTextures().size(); i++){
-        auto texture = _frameBuffer->GetColorTextures()[i];
-
-        auto formatString = texture->GetFormat() == TextureFormat::RGBA ? "RGBA" : "Red Integer";
-
-        std::cout << "Color Attachment " << i << " ID: " << texture->GetID() << std::endl;
-        std::cout << "Color Attachment " << i << " Width: " << texture->GetWidth() << std::endl;
-        std::cout << "Color Attachment " << i << " Height: " << texture->GetHeight() << std::endl;
-        std::cout << "Color Attachment " << i << " Format: " << formatString << std::endl;
-    }
-
     _camera = new EditorCamera(1024, 1024, 45.0f, 0.1f, 1000.0f);
     _camera->GetTransform().SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+
+    ConstructIcons("assets/icons/toolbar");
+
+    //Temporary container for toolbar fonts
+    ImGuiIO& io = ImGui::GetIO();
+    _font = io.Fonts->AddFontFromFileTTF("assets/fonts/inter/Inter-Medium.ttf", 14.0f);
+}
+
+void Viewport::ConstructIcons(std::string directory) {
+    for (const auto& entry : std::filesystem::directory_iterator(directory))
+    {
+        std::string path = entry.path().string();
+        std::string filename = entry.path().filename().string();
+        if (filename.find(".png") != std::string::npos)
+        {
+            auto* texture = AssetManager::GetInstance()->Load<Texture>(path);
+
+            _iconTextures[filename] = texture;
+        }
+    }
 }
 
 void Viewport::Update()
@@ -50,7 +57,7 @@ void Viewport::Update()
     int mouseX = (int)mx;
     int mouseY = (int)my;
 
-    if (mouseX >= 0 && mouseY >= 0 && mouseX < viewportSize.x && mouseY < viewportSize.y)
+    if (mouseX >= 0 && mouseY >= 0 && mouseX < viewportSize.x && mouseY < viewportSize.y && !_hoveringToolbar)
     {
         auto data = _frameBuffer->ReadPixel(1, mouseX, mouseY);
 
@@ -146,8 +153,8 @@ void Viewport::OnGUI()
 
                 ImGuizmo::Manipulate(glm::value_ptr(view),
                                      glm::value_ptr(projection),
-                                     ImGuizmo::OPERATION::TRANSLATE,
-                                     ImGuizmo::MODE::LOCAL,
+                                     _currentGizmoOperation,
+                                     _currentGizmoMode,
                                      glm::value_ptr(model));
 
                 glm::vec3 gizmoPosition, gizmoRotation, gizmoScale;
@@ -161,31 +168,114 @@ void Viewport::OnGUI()
                     transform->SetPosition(translation);
                     transform->SetRotation(rotation);
                     transform->SetScale(scale);
-                }
+            }
             }
         }
     }
 
-    // Debug
-//    ImGui::Begin("Engine Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);// Get the size of the overlay
-//    ImVec2 overlaySize = ImGui::GetWindowSize();
-//    ImVec2 overlayPos = ImVec2(_windowPos.x + _windowSize.x - overlaySize.x, _windowPos.y + 30); // Calculate the position of the overlay
-//
-//    ImGui::SetWindowPos(overlayPos);
-//
-//    ImGui::Text("Viewport Postion: %f, %f", _windowPos.x, _windowPos.y);
-//    ImGui::Text("Viewport Size: %f x %f", _windowSize.x, _windowSize.y);
-//    ImGui::Text("Camera Position: %f, %f, %f", _camera->GetTransform().GetPosition().x, _camera->GetTransform().GetPosition().y, _camera->GetTransform().GetPosition().z);
-//    ImGui::Text("Is Mouse Over: %d", IsMouseOverWindow());
-//    ImGui::Text("Is Window Focused: %d", IsWindowFocused());
-//    ImGui::Text("Mouse Position: %f, %f", ImGui::GetMousePos().x, ImGui::GetMousePos().y);
-//    ImGui::Text(ImGuizmo::IsOver() ? "Over gizmo":"Not over gizmo");
-//    ImGui::Text(ImGuizmo::IsOver(ImGuizmo::TRANSLATE) ? "Over translate gizmo" : "Not Interacting with translate gizmo");
-//
-//    // End overlay
-//    ImGui::End();
+    DrawToolbar();
 
-    
+    // Debug
+    ImGui::Begin("Engine Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);// Get the size of the overlay
+    ImVec2 overlaySize = ImGui::GetWindowSize();
+    ImVec2 overlayPos = ImVec2(_windowPos.x + _windowSize.x - overlaySize.x, _windowPos.y + 30); // Calculate the position of the overlay
+
+    ImGui::SetWindowPos(overlayPos);
+
+    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::Text("Is Toolbar: ", _hoveringToolbar);
+
+    // End overlay
+    ImGui::End();
+}
+
+void Viewport::DrawToolbar()
+{
+    ImGui::SetNextWindowBgAlpha(0.0f);
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowBorderSize = 0.0f;
+
+    ImGui::Begin("Tools", NULL,
+                 ImGuiWindowFlags_NoTitleBar |
+                 ImGuiWindowFlags_NoResize |
+                 ImGuiWindowFlags_AlwaysAutoResize |
+                 ImGuiWindowFlags_NoMove |
+                 ImGuiWindowFlags_NoSavedSettings);
+
+    ImVec2 overlayPos = ImVec2(_windowPos.x + TOOLBAR_OFFSET, _windowPos.y + TOOLBAR_OFFSET); // Calculate the position of the overlay
+
+    ImGui::SetWindowPos(overlayPos);
+
+    auto windowSize = ImGui::GetWindowSize();
+    float center_x = windowSize.x / 2;
+
+    DrawToolbarButton("Translate", "translate.png", ImGuizmo::OPERATION::TRANSLATE, center_x);
+    DrawToolbarButton("Rotate", "rotate.png", ImGuizmo::OPERATION::ROTATE, center_x);
+    DrawToolbarButton("Scale", "scale.png", ImGuizmo::OPERATION::SCALE, center_x);
+    DrawToolbarButton("Universal", "universal.png", ImGuizmo::OPERATION::UNIVERSAL, center_x);
+
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+    ImGui::Separator();
+
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+    ImGui::SetWindowPos(overlayPos);
+
+    auto name = _currentGizmoMode == ImGuizmo::MODE::WORLD ? "World" : "Local";
+    auto iconName = _currentGizmoMode == ImGuizmo::MODE::WORLD ? "world.png" : "local.png";
+
+    DrawToolbarButton(name, iconName, ImGuizmo::MODE::WORLD, center_x);
+
+    _hoveringToolbar = ImGui::IsWindowHovered() || ImGui::IsWindowFocused();
+    ImGui::End();
+}
+
+void Viewport::DrawToolbarButton(const char *name, const char* iconName, ImGuizmo::OPERATION operation, float centerX)
+{
+    float textWidth = ImGui::CalcTextSize(name).x / 2;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.FrameRounding = 8.0f;
+
+    if (_currentGizmoOperation == operation)
+    {
+        style.Colors[ImGuiCol_Button] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+        style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+    }
+
+    if (ImGui::ImageButton(reinterpret_cast<void*>(_iconTextures[iconName]->GetID()), ImVec2(TOOLBAR_ICON_SIZE, TOOLBAR_ICON_SIZE)))
+        _currentGizmoOperation = operation;
+
+    ImGui::PushFont(_font);
+    ImGui::SetCursorPosX(centerX - textWidth);
+    ImGui::Text(name);
+    ImGui::PopFont();
+}
+
+void Viewport::DrawToolbarButton(const char *name, const char* iconName, ImGuizmo::MODE operation, float centerX)
+{
+    float textWidth = ImGui::CalcTextSize(name).x / 2;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.FrameRounding = TOOLBAR_BUTTON_ROUNDING;
+
+    if (_currentGizmoOperation == operation)
+    {
+        style.Colors[ImGuiCol_Button] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+        style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+    }
+
+    if (ImGui::ImageButton(reinterpret_cast<void*>(_iconTextures[iconName]->GetID()), ImVec2(TOOLBAR_ICON_SIZE, TOOLBAR_ICON_SIZE)))
+        _currentGizmoMode = operation;
+
+    ImGui::PushFont(_font);
+    ImGui::SetCursorPosX(centerX - textWidth);
+    ImGui::Text(name);
+    ImGui::PopFont();
 }
 
 void Viewport::SetViewportSizeChangedCallback(std::function<void(const ImVec2&)> callback) {

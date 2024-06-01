@@ -45,7 +45,6 @@ void GeometryPass::Render(Scene& scene, Camera& camera)
 			Transform* transform = pair.second->GetComponent<Transform>();
 			_shaderGeometryPass->SetMat4("model", transform->GetModelMatrix());
 
-
 			for (Mesh& mesh : model->GetMeshes())
 			{
 				OpenGLRenderer::DrawIndexed(mesh, *_shaderGeometryPass);
