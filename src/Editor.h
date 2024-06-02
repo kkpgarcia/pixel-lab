@@ -13,6 +13,7 @@ public:
     static bool IsProjectOpen() { return _project != nullptr; }
     static void SetCurrentSelection(UniqueID id);
     static UniqueID GetCurrentSelection() { return _currentSelection; }
+    static std::shared_ptr<Entity> GetCurrentSelectedEntity();
 private:
     static Scene* _scene;
     static Project* _project;

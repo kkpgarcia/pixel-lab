@@ -1,28 +1,33 @@
 #include "InspectorView.h"
 #include "imgui_internal.h"
+#include "Editor.h"
 
 void InspectorView::OnGUI()
 {
-    // Edit position vectors
-    ImGui::Text("Transform");
-    ImGui::SameLine(); HelpMarker("Adjust position.");
-    DrawVector3Widget("Position", transform.position, 0.0f, 100.0f);
+    auto selectedEntity = Editor::GetCurrentSelectedEntity();
 
-    // Edit rotation vectors
-    ImGui::Text("Rotation");
-    ImGui::SameLine(); HelpMarker("Adjust rotation angles in degrees.");
-    ImGui::InputFloat3("##Rotation", &transform.rotation[0]);
+    if (selectedEntity == nullptr)
+    {
+        ImGui::Text("No entity selected.");
+        return;
+    }
 
-    // Edit scale vectors
-    ImGui::Text("Scale");
-    ImGui::SameLine(); HelpMarker("Adjust scale factors.");
-    ImGui::InputFloat3("##Scale", &transform.scale[0]);
+    auto transformComponent = selectedEntity->GetComponent<Transform>();
 
-    // Optional: Reset button to reset the transform
-    if (ImGui::Button("Reset Transform")) {
-        transform.position = glm::vec3(0.0f);
-        transform.rotation = glm::vec3(0.0f);
-        transform.scale = glm::vec3(1.0f);
+    if (transformComponent != nullptr)
+    {
+        ImGui::Text("Transform");
+        ImGui::Separator();
+        ImGui::SameLine(); HelpMarker("Adjust position.");
+        DrawVector3Widget("Position", transformComponent->position, 0.0f, 100.0f);
+
+        ImGui::SameLine(); HelpMarker("Adjust rotation angles in degrees.");
+        glm::vec3 rotation = glm::degrees(glm::eulerAngles(transformComponent->GetRotation())); // Convert quaternion to Euler angles in degrees
+        DrawVector3Widget("Rotation", rotation, 0.0f, 100.0f);
+        transformComponent->SetRotation(glm::quat(glm::radians(rotation)));
+
+        ImGui::SameLine(); HelpMarker("Adjust scale factors.");
+        DrawVector3Widget("Scale", transformComponent->scale, 1.0f, 100.0f);
     }
 }
 

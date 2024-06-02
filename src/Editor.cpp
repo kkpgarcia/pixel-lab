@@ -26,3 +26,22 @@ void Editor::SetCurrentSelection(UniqueID id)
 
     _currentSelection = id;
 }
+
+std::shared_ptr<Entity> Editor::GetCurrentSelectedEntity()
+{
+    auto currentScene = Editor::GetScene();
+
+    if (currentScene == nullptr)
+    {
+        return nullptr;
+    }
+
+    auto entity = currentScene->Get(_currentSelection);
+
+    if (entity == nullptr)
+    {
+        return nullptr;
+    }
+
+    return entity;
+}

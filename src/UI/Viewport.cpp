@@ -130,45 +130,42 @@ void Viewport::OnGUI()
     glm::mat4 view = glm::inverse(_camera->GetTransform().GetModelMatrix());
     glm::mat4 projection = _camera->GetProjection();
 
-    auto currentSelection = Editor::GetCurrentSelection();
-    if ((int)currentSelection != 0)
+
+    auto entity = Editor::GetCurrentSelectedEntity();
+
+    if (entity != nullptr)
     {
-        auto entity = Editor::GetScene()->Get(currentSelection);
+        auto transform = entity->GetComponent<Transform>();
 
-        if (entity != nullptr)
+        if (transform != nullptr)
         {
-            auto transform = entity->GetComponent<Transform>();
+            glm::mat4 model = transform->GetModelMatrix();
 
-            if (transform != nullptr)
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();
+
+            ImGuizmo::SetRect(viewportMinBound.x,
+                              viewportMinBound.y,
+                              viewportSize.x,
+                              viewportSize.y);
+
+            ImGuizmo::Manipulate(glm::value_ptr(view),
+                                 glm::value_ptr(projection),
+                                 _currentGizmoOperation,
+                                 _currentGizmoMode,
+                                 glm::value_ptr(model));
+
+            glm::vec3 gizmoPosition, gizmoRotation, gizmoScale;
+            Math::DecomposeTransform(model, gizmoPosition, gizmoRotation, gizmoScale);
+
+            if (ImGuizmo::IsUsing())
             {
-                glm::mat4 model = transform->GetModelMatrix();
+                glm::vec3 translation, rotation, scale;
+                Math::DecomposeTransform(model, translation, rotation, scale);
 
-                ImGuizmo::SetOrthographic(false);
-                ImGuizmo::SetDrawlist();
-
-                ImGuizmo::SetRect(viewportMinBound.x,
-                                  viewportMinBound.y,
-                                  viewportSize.x,
-                                  viewportSize.y);
-
-                ImGuizmo::Manipulate(glm::value_ptr(view),
-                                     glm::value_ptr(projection),
-                                     _currentGizmoOperation,
-                                     _currentGizmoMode,
-                                     glm::value_ptr(model));
-
-                glm::vec3 gizmoPosition, gizmoRotation, gizmoScale;
-                Math::DecomposeTransform(model, gizmoPosition, gizmoRotation, gizmoScale);
-
-                if (ImGuizmo::IsUsing())
-                {
-                    glm::vec3 translation, rotation, scale;
-                    Math::DecomposeTransform(model, translation, rotation, scale);
-
-                    transform->SetPosition(translation);
-                    transform->SetRotation(rotation);
-                    transform->SetScale(scale);
-            }
+                transform->SetPosition(translation);
+                transform->SetRotation(rotation);
+                transform->SetScale(scale);
             }
         }
     }
