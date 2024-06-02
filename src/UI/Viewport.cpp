@@ -44,7 +44,7 @@ void Viewport::ConstructIcons(std::string directory) {
 
 void Viewport::Update()
 {
-    _camera->ToggleInteractions(IsMouseOverWindow() && IsWindowFocused());
+    _camera->ToggleInteractions(IsMouseOverWindow());
     _camera->OnUpdate();
 
     _frameBuffer->Bind();
@@ -116,7 +116,7 @@ void Viewport::OnGUI()
                 if (p.filename().extension() == ".obj")
                 {
                     auto model = AssetManager::GetInstance()->Load<Model>(path);
-                    auto entity = new Entity();
+                    auto entity = new Entity(model->GetName());
                     entity->AddComponent<Model>(model);
                     Editor::GetScene()->Add(*entity);
                 }

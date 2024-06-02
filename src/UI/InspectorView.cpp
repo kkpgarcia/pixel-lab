@@ -16,18 +16,26 @@ void InspectorView::OnGUI()
 
     if (transformComponent != nullptr)
     {
-        ImGui::Text("Transform");
-        ImGui::Separator();
-        ImGui::SameLine(); HelpMarker("Adjust position.");
-        DrawVector3Widget("Position", transformComponent->position, 0.0f, 100.0f);
+        if (ImGui::CollapsingHeader("Transform"))
+        {
+            ImGui::Separator();
+            DrawVector3Widget("Position", transformComponent->position, 0.0f, 100.0f);
 
-        ImGui::SameLine(); HelpMarker("Adjust rotation angles in degrees.");
-        glm::vec3 rotation = glm::degrees(glm::eulerAngles(transformComponent->GetRotation())); // Convert quaternion to Euler angles in degrees
-        DrawVector3Widget("Rotation", rotation, 0.0f, 100.0f);
-        transformComponent->SetRotation(glm::quat(glm::radians(rotation)));
+            glm::vec3 rotation = glm::degrees(glm::eulerAngles(transformComponent->GetRotation())); // Convert quaternion to Euler angles in degrees
+            DrawVector3Widget("Rotation", rotation, 0.0f, 100.0f);
+            transformComponent->SetRotation(glm::quat(glm::radians(rotation)));
 
-        ImGui::SameLine(); HelpMarker("Adjust scale factors.");
-        DrawVector3Widget("Scale", transformComponent->scale, 1.0f, 100.0f);
+            DrawVector3Widget("Scale", transformComponent->scale, 1.0f, 100.0f);
+        }
+    }
+
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
+    ImGui::Separator();
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
+
+    if (ImGui::Button("Add Component"))
+    {
+        ImGui::OpenPopup("AddComponentPopup");
     }
 }
 

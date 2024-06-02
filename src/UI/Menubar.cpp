@@ -101,8 +101,8 @@ void Menubar::OnGUI()
                     char* fileNameChar = new char[strlen(ofn.lpstrFile) + 1];
                     strcpy(fileNameChar, ofn.lpstrFile);
 
-                    Entity* entity = new Entity();
                     Model* model = AssetManager::GetInstance()->Load<Model>(std::string(fileNameChar));
+                    Entity* entity = new Entity(model->GetName());
                     entity->AddComponent<Model>(model);
                     Editor::GetScene()->Add(*entity);
 

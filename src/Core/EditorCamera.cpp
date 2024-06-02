@@ -34,6 +34,8 @@ void EditorCamera::Rotate(const glm::vec2& delta)
 
 void EditorCamera::Zoom(float delta)
 {
+    if (!_isInteracting) return;
+
 	float distanceChange = delta * _zoomSpeed;
 	glm::vec3 forward = _transform.GetForward();
 	_transform.Translate(distanceChange * forward);
