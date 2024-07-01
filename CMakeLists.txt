@@ -5,12 +5,15 @@ set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB_RECURSE PIXEL_LAB_SOURCES "src/*.cpp")
 file(GLOB_RECURSE PIXEL_LAB_HEADERS "src/*.h")
-add_executable(pixel_lab "main.cpp" "src/pch.cpp" ${PIXEL_LAB_SOURCES} ${PIXEL_LAB_HEADERS})
+#add_executable(pixel_lab "main.cpp" "src/pch.cpp" ${PIXEL_LAB_SOURCES} ${PIXEL_LAB_HEADERS})
+add_executable(pixel_lab "main.cpp" "src/pch.cpp" src/EditorApplicationSlim.h
+        src/EditorApplicationSlim.cpp)
+
 
 set_target_properties(pixel_lab PROPERTIES LINK_FLAGS "-mconsole")
 
 set(PIXEL_ENGINE_LIB "${CMAKE_SOURCE_DIR}/vendor/libpixel_engine.a")
-set(PIXEL_ENGINE_INCLUDE_DIR "C:\\Project\\pixel-engine\\src")
+set(PIXEL_ENGINE_INCLUDE_DIR "E:\\pixel-engine\\src")
 
 target_link_libraries(pixel_lab PRIVATE ${PIXEL_ENGINE_LIB})
 target_include_directories(pixel_lab PRIVATE ${PIXEL_ENGINE_INCLUDE_DIR} "src")
@@ -25,7 +28,7 @@ target_link_libraries(pixel_lab PRIVATE glad::glad)
 include_directories("vendor/glfw/include")
 target_link_libraries(pixel_lab PRIVATE "${CMAKE_SOURCE_DIR}/vendor/glfw/lib-mingw-w64/glfw3.dll")
 
-#find_package(glfw3 CONFIG REQUIRED)
+#find_package(glfw3 REQUIRED)
 #target_link_libraries(pixel_lab PRIVATE glfw)
 
 find_package(glm CONFIG REQUIRED)

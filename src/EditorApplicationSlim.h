@@ -1,0 +1,8 @@
+//
+// Created by Kyle on 6/30/2024.
+//
+
+#ifndef EDITORAPPLICATIONSLIM_H
+#define EDITORAPPLICATIONSLIM_H
+
+#endif //EDITORAPPLICATIONSLIM_H

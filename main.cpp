@@ -1,11 +1,12 @@
-#include "EditorApplicaiton.h"
+#include "EditorApplicationSlim.h"
 
 Application* application;
 
 int main()
 {
-	application = new EditorApplication();
+	application = new EditorApplicationSlim();
 	application->Run();
+	application->Shutdown();
 	delete application;
 
 	return 0;

@@ -62,3 +62,5 @@
 /cmake-build-debug/cmake_install.cmake
 /cmake-build-debug/CMakeCache.txt
 /cmake-build-debug/imgui.ini
+vendor
+cmake-build-debug
