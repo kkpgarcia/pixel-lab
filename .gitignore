@@ -64,3 +64,6 @@
 /cmake-build-debug/imgui.ini
 vendor
 cmake-build-debug
+.idea
+vendor
+cmake-build-debug
