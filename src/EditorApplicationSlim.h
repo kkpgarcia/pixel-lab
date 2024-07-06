@@ -11,16 +11,20 @@ class EditorApplicationSlim : public Application
 {
 public:
     EditorApplicationSlim() : Application(ApplicationSettings { "PixelLab", 1024, 720 }) { Init(); }
+    ~EditorApplicationSlim() override;
 
     void Init() override;
     void OnUpdate() override;
+    void OnEvent(Event& event) override;
+    void OnResizeHandler(WindowResizeEvent& event) override;
 
 private:
     RenderAPI* m_RenderAPI = nullptr;
 
     //Temporary
     Camera* m_Camera = nullptr;
-    Shader* m_DiffuseShader = nullptr;
+    Material* m_Diffuse = nullptr;
+    Shader* m_Shader = nullptr;
 };
 
 #endif //EDITORAPPLICATIONSLIM_H
