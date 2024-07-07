@@ -152,6 +152,11 @@ void EditorApplicationSlim::Init()
 
 void EditorApplicationSlim::OnUpdate()
 {
+}
+
+void EditorApplicationSlim::OnRender()
+{
+    Application::OnRender();
     m_FrameBuffer->Bind();
     m_RenderAPI->SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
     m_RenderAPI->BeginFrame();
@@ -194,13 +199,15 @@ void EditorApplicationSlim::OnEvent(Event& event)
 
     EventDispatcher dispatcher(event);
     dispatcher.Dispatch<KeyDownEvent>(BIND_EVENT(OnKeyDownHandler));
+    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT(OnResizeHandler));
 }
 
 void EditorApplicationSlim::OnResizeHandler(WindowResizeEvent& event)
 {
     Application::OnResizeHandler(event);
+
     m_RenderAPI->SetViewport(0, 0, event.GetWidth(), event.GetHeight());
-    m_FrameBuffer->Resize(m_AppSettings.Width, m_AppSettings.Height);
+    m_FrameBuffer->Resize(event.GetWidth(), event.GetHeight());
 }
 
 void EditorApplicationSlim::OnKeyDownHandler(KeyDownEvent& event)

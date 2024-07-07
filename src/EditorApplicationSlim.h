@@ -5,16 +5,17 @@
 #ifndef EDITORAPPLICATIONSLIM_H
 #define EDITORAPPLICATIONSLIM_H
 
-#include "PixelEngine-slim.h"
+#include "PixelEngine.h"
 
 class EditorApplicationSlim : public Application
 {
 public:
-    EditorApplicationSlim() : Application(ApplicationSettings { "PixelLab", 1024, 720 }) { Init(); }
+    EditorApplicationSlim() : Application(ApplicationSettings { "PixelLab", 1024, 720, 1000 }) { Init(); }
     ~EditorApplicationSlim() override;
 
     void Init() override;
     void OnUpdate() override;
+    void OnRender() override;
     void OnEvent(Event& event) override;
     void OnResizeHandler(WindowResizeEvent& event) override;
     void OnKeyDownHandler(KeyDownEvent& event);
