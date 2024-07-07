@@ -17,6 +17,7 @@ public:
     void OnUpdate() override;
     void OnEvent(Event& event) override;
     void OnResizeHandler(WindowResizeEvent& event) override;
+    void OnKeyDownHandler(KeyDownEvent& event);
 
 private:
     RenderAPI* m_RenderAPI = nullptr;

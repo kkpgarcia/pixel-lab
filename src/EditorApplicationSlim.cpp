@@ -116,6 +116,7 @@ void EditorApplicationSlim::Init()
     else
     {
         settings.Format = settings.Channels == 4 ? TextureFormat::RGBA : TextureFormat::RGB;
+        settings.GenerateMipmaps = true;
         m_Texture = Texture::Create(settings, textureData);
     }
 
@@ -156,7 +157,6 @@ void EditorApplicationSlim::OnUpdate()
     m_RenderAPI->BeginFrame();
 
     auto model = glm::mat4(1.0f);
-    //model = glm::translate(model, glm::vec3(0.0f, 0.0f, 5.0f));
     auto view = m_Camera->GetView();
     auto aspectRatio = static_cast<float>(m_AppSettings.Width) / static_cast<float>(m_AppSettings.Height);
     auto projection = m_Camera->GetProjection(aspectRatio); //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 100.0f);
@@ -178,7 +178,6 @@ void EditorApplicationSlim::OnUpdate()
 
     m_FrameBuffer->Unbind();
 
-
     //Render the framebuffer to screen mesh
     m_RenderAPI->SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
     m_RenderAPI->BeginFrame();
@@ -191,8 +190,10 @@ void EditorApplicationSlim::OnUpdate()
 
 void EditorApplicationSlim::OnEvent(Event& event)
 {
+    Application::OnEvent(event);
+
     EventDispatcher dispatcher(event);
-    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& event) { OnResizeHandler(event); return false; });
+    dispatcher.Dispatch<KeyDownEvent>(BIND_EVENT(OnKeyDownHandler));
 }
 
 void EditorApplicationSlim::OnResizeHandler(WindowResizeEvent& event)
@@ -200,4 +201,12 @@ void EditorApplicationSlim::OnResizeHandler(WindowResizeEvent& event)
     Application::OnResizeHandler(event);
     m_RenderAPI->SetViewport(0, 0, event.GetWidth(), event.GetHeight());
     m_FrameBuffer->Resize(m_AppSettings.Width, m_AppSettings.Height);
+}
+
+void EditorApplicationSlim::OnKeyDownHandler(KeyDownEvent& event)
+{
+    if (event.GetKey() == P)
+    {
+        Profiler::PrintResults();
+    }
 }
