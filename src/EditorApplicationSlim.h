@@ -24,7 +24,11 @@ private:
     //Temporary
     Camera* m_Camera = nullptr;
     Material* m_Diffuse = nullptr;
-    Shader* m_Shader = nullptr;
+    Texture* m_Texture = nullptr;
+    FrameBuffer* m_FrameBuffer = nullptr;
+    Mesh* m_Mesh = nullptr;
+    Mesh* m_ScreenMesh = nullptr;
+    Material* m_ScreenMaterial = nullptr;
 };
 
 #endif //EDITORAPPLICATIONSLIM_H
