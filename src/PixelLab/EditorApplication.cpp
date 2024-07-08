@@ -2,13 +2,14 @@
 // Created by Kyle on 6/30/2024.
 //
 
-#include "EditorApplicationSlim.h"
+#include "EditorApplication.h"
 
-#include <imgui.h>
+#include <../../vendor/imgui/imgui.h>
 #include <glm/glm.hpp>
 #include <stb_image.h>
 
-EditorApplicationSlim::~EditorApplicationSlim()
+
+EditorApplication::~EditorApplication()
 {
     m_RenderAPI->Shutdown();
     delete m_RenderAPI;
@@ -16,7 +17,7 @@ EditorApplicationSlim::~EditorApplicationSlim()
     delete m_Diffuse;
 }
 
-void EditorApplicationSlim::Init()
+void EditorApplication::Init()
 {
     Application::Init();
     RenderAPI::SetGraphicsAPI(GraphicsAPI::OpenGL);
@@ -28,7 +29,6 @@ void EditorApplicationSlim::Init()
             std::cout << "Failed to create RenderAPI!" << std::endl;
             return;
         }
-
     }
 
     m_RenderAPI->Init();
@@ -151,11 +151,11 @@ void EditorApplicationSlim::Init()
     m_Mesh = Mesh::Generate(Primitive::Quad);
 }
 
-void EditorApplicationSlim::OnUpdate()
+void EditorApplication::OnUpdate()
 {
 }
 
-void EditorApplicationSlim::OnRender()
+void EditorApplication::OnRender()
 {
     Application::OnRender();
     m_FrameBuffer->Bind();
@@ -193,8 +193,10 @@ void EditorApplicationSlim::OnRender()
     m_RenderAPI->EndFrame();
 }
 
-void EditorApplicationSlim::OnGUI()
+void EditorApplication::OnGUI()
 {
+    PROFILE_SCOPE("EditorApplication::OnGUI()");
+
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -211,16 +213,33 @@ void EditorApplicationSlim::OnGUI()
             if (ImGui::MenuItem("Redo", "Ctrl+Y")) {}
             ImGui::EndMenu();
         }
+
+        if (ImGui::BeginMenu("Assets"))
+        {
+            if (ImGui::MenuItem("Import")) {}
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Windows"))
+        {
+            if (ImGui::MenuItem("Asset Browser")) {}
+            if (ImGui::MenuItem("Profiler"))
+            {
+                if (!m_ProfilerUI.IsEnabled())
+                    m_ProfilerUI.Show();
+            }
+            ImGui::EndMenu();
+        }
     }
     ImGui::EndMainMenuBar();
 
-    ImGui::Begin("Test Window");
-    ImGui::Text("Hello, world!");
-    ImGui::End();
+    m_ProfilerUI.OnGUI();
 }
 
-void EditorApplicationSlim::OnEvent(Event& event)
+void EditorApplication::OnEvent(Event& event)
 {
+    PROFILE_SCOPE("EditorApplication::OnEvent()");
+
     Application::OnEvent(event);
 
     EventDispatcher dispatcher(event);
@@ -228,15 +247,17 @@ void EditorApplicationSlim::OnEvent(Event& event)
     dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT(OnResizeHandler));
 }
 
-void EditorApplicationSlim::OnResizeHandler(WindowResizeEvent& event)
+void EditorApplication::OnResizeHandler(WindowResizeEvent& event)
 {
+    PROFILE_SCOPE("EditorApplication::OnResizeHandler()");
+
     Application::OnResizeHandler(event);
 
     m_RenderAPI->SetViewport(0, 0, event.GetWidth(), event.GetHeight());
     m_FrameBuffer->Resize(event.GetWidth(), event.GetHeight());
 }
 
-void EditorApplicationSlim::OnKeyDownHandler(KeyDownEvent& event)
+void EditorApplication::OnKeyDownHandler(KeyDownEvent& event)
 {
     if (event.GetKey() == P)
     {
@@ -244,7 +265,7 @@ void EditorApplicationSlim::OnKeyDownHandler(KeyDownEvent& event)
     }
 }
 
-void EditorApplicationSlim::Shutdown()
+void EditorApplication::Shutdown()
 {
     Application::Shutdown();
 }

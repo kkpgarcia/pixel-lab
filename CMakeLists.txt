@@ -3,11 +3,9 @@ project(pixel_lab)
 
 set(CMAKE_CXX_STANDARD 17)
 
-file(GLOB_RECURSE PIXEL_LAB_SOURCES "src/*.cpp")
-file(GLOB_RECURSE PIXEL_LAB_HEADERS "src/*.h")
-#add_executable(pixel_lab "main.cpp" "src/pch.cpp" ${PIXEL_LAB_SOURCES} ${PIXEL_LAB_HEADERS})
-add_executable(pixel_lab "main.cpp" "src/pch.cpp" src/EditorApplicationSlim.h
-        src/EditorApplicationSlim.cpp)
+file(GLOB_RECURSE PIXEL_LAB_SOURCES "src/PixelLab/*.cpp")
+file(GLOB_RECURSE PIXEL_LAB_HEADERS "src/PixelLab/*.h")
+add_executable(pixel_lab "main.cpp" "src/pch.cpp" ${PIXEL_LAB_SOURCES} ${PIXEL_LAB_HEADERS})
 
 
 set_target_properties(pixel_lab PROPERTIES LINK_FLAGS "-mconsole")

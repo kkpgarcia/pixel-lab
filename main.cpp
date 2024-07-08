@@ -1,10 +1,10 @@
-#include "EditorApplicationSlim.h"
+#include "src/PixelLab/EditorApplication.h"
 
 Application* application;
 
 int main()
 {
-	application = new EditorApplicationSlim();
+	application = new EditorApplication();
 	application->Init();
 	application->Run();
 	application->Shutdown();

@@ -6,12 +6,13 @@
 #define EDITORAPPLICATIONSLIM_H
 
 #include "PixelEngine.h"
+#include "ProfilerUI.h"
 
-class EditorApplicationSlim : public Application
+class EditorApplication : public Application
 {
 public:
-    EditorApplicationSlim() : Application(ApplicationSettings { "PixelLab", 1024, 720, 1000 }) { }
-    ~EditorApplicationSlim() override;
+    EditorApplication() : Application(ApplicationSettings { "PixelLab", 1024, 720, 1000 }) { }
+    ~EditorApplication() override;
 
     void Init() override;
     void OnUpdate() override;
@@ -24,6 +25,8 @@ public:
 
 private:
     RenderAPI* m_RenderAPI = nullptr;
+
+    ProfilerUI m_ProfilerUI;
 
     //Temporary
     Camera* m_Camera = nullptr;
