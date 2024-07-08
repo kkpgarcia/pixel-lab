@@ -4,8 +4,8 @@
 
 #include "EditorApplicationSlim.h"
 
+#include <imgui.h>
 #include <glm/glm.hpp>
-
 #include <stb_image.h>
 
 EditorApplicationSlim::~EditorApplicationSlim()
@@ -18,6 +18,7 @@ EditorApplicationSlim::~EditorApplicationSlim()
 
 void EditorApplicationSlim::Init()
 {
+    Application::Init();
     RenderAPI::SetGraphicsAPI(GraphicsAPI::OpenGL);
     if (m_RenderAPI == nullptr)
     {
@@ -166,7 +167,6 @@ void EditorApplicationSlim::OnRender()
     auto aspectRatio = static_cast<float>(m_AppSettings.Width) / static_cast<float>(m_AppSettings.Height);
     auto projection = m_Camera->GetProjection(aspectRatio); //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 100.0f);
 
-
     m_Diffuse->Use();
     m_Diffuse->SetMat4("u_Model", model);
     m_Diffuse->SetMat4("u_View", view);
@@ -193,6 +193,32 @@ void EditorApplicationSlim::OnRender()
     m_RenderAPI->EndFrame();
 }
 
+void EditorApplicationSlim::OnGUI()
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("New", "Ctrl+N")) {}
+            if (ImGui::MenuItem("Open", "Ctrl+0")) {}
+            if (ImGui::MenuItem("Save", "Ctrl+S")) {}
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (ImGui::MenuItem("Undo", "Ctrl+Z")) {}
+            if (ImGui::MenuItem("Redo", "Ctrl+Y")) {}
+            ImGui::EndMenu();
+        }
+    }
+    ImGui::EndMainMenuBar();
+
+    ImGui::Begin("Test Window");
+    ImGui::Text("Hello, world!");
+    ImGui::End();
+}
+
 void EditorApplicationSlim::OnEvent(Event& event)
 {
     Application::OnEvent(event);
@@ -216,4 +242,9 @@ void EditorApplicationSlim::OnKeyDownHandler(KeyDownEvent& event)
     {
         Profiler::PrintResults();
     }
+}
+
+void EditorApplicationSlim::Shutdown()
+{
+    Application::Shutdown();
 }

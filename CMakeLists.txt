@@ -44,6 +44,7 @@ set(IMGUI_SOURCES
         "${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_opengl3.cpp"
 )
 add_library(imgui ${IMGUI_SOURCES})
+target_include_directories(imgui PUBLIC "${CMAKE_SOURCE_DIR}/vendor/imgui")
 target_link_libraries(pixel_lab PRIVATE imgui)
 
 find_package(yaml-cpp CONFIG REQUIRED)

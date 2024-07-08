@@ -10,15 +10,17 @@
 class EditorApplicationSlim : public Application
 {
 public:
-    EditorApplicationSlim() : Application(ApplicationSettings { "PixelLab", 1024, 720, 1000 }) { Init(); }
+    EditorApplicationSlim() : Application(ApplicationSettings { "PixelLab", 1024, 720, 1000 }) { }
     ~EditorApplicationSlim() override;
 
     void Init() override;
     void OnUpdate() override;
     void OnRender() override;
+    void OnGUI() override;
     void OnEvent(Event& event) override;
     void OnResizeHandler(WindowResizeEvent& event) override;
     void OnKeyDownHandler(KeyDownEvent& event);
+    void Shutdown() override;
 
 private:
     RenderAPI* m_RenderAPI = nullptr;
