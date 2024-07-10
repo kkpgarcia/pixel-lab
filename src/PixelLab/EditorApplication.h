@@ -5,6 +5,7 @@
 #ifndef EDITORAPPLICATIONSLIM_H
 #define EDITORAPPLICATIONSLIM_H
 
+#include "EditorCamera.h"
 #include "PixelEngine.h"
 #include "ProfilerUI.h"
 
@@ -29,7 +30,7 @@ private:
     ProfilerUI m_ProfilerUI;
 
     //Temporary
-    Camera* m_Camera = nullptr;
+    EditorCamera* m_Camera = nullptr;
     Material* m_Diffuse = nullptr;
     Texture* m_Texture = nullptr;
     FrameBuffer* m_FrameBuffer = nullptr;

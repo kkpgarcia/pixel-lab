@@ -126,7 +126,7 @@ void EditorApplication::Init()
     m_Diffuse = new Material(Shader::Create(diffuseVertexShader.c_str(), diffuseFragmentShader.c_str()));
     m_ScreenMaterial = new Material(Shader::Create(screenVertexShader.c_str(), screenFragmentShader.c_str()));
 
-    m_Camera = new Camera();
+    m_Camera = new EditorCamera();
     m_Camera->GetTransform()->Translate(glm::vec3(0.0f, 0.0f, 5.0f));
 
     m_FrameBuffer = FrameBuffer::Create({
@@ -149,10 +149,14 @@ void EditorApplication::Init()
 
     m_ScreenMesh = Mesh::Generate(Primitive::Quad);
     m_Mesh = Mesh::Generate(Primitive::Quad);
+
+    // ImGuiStyle& style = ImGui::GetStyle();
+    // style.ScaleAllSizes(2);
 }
 
 void EditorApplication::OnUpdate()
 {
+    m_Camera->OnUpdate();
 }
 
 void EditorApplication::OnRender()
@@ -230,8 +234,8 @@ void EditorApplication::OnGUI()
             }
             ImGui::EndMenu();
         }
+        ImGui::EndMainMenuBar();
     }
-    ImGui::EndMainMenuBar();
 
     m_ProfilerUI.OnGUI();
 }
