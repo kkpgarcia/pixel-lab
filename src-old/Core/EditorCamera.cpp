@@ -25,9 +25,20 @@ void EditorCamera::Pan(const glm::vec2& delta)
 
 void EditorCamera::Rotate(const glm::vec2& delta)
 {
-	float yawSign = _transform.GetUp().y < 0 ? -1.0f : 1.0f;
-	_yaw += yawSign * delta.x * _rotationSpeed;
-	_pitch += delta.y * _rotationSpeed;
+	    // Sensitivity factors for yaw and pitch movements
+    const float yawSensitivity = 0.005f;
+    const float pitchSensitivity = 0.005f;
+
+    // Calculate the change in yaw and pitch based on mouse movement and sensitivity
+    m_Yaw += delta.x * yawSensitivity;
+    m_Pitch += delta.y * pitchSensitivity;
+
+    // Clamp pitch to prevent flipping over the top
+    m_Pitch = glm::clamp(m_Pitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
+
+    // Convert yaw and pitch to a quaternion rotation
+    glm::quat rotation = glm::quat(glm::vec3(-m_Pitch, -m_Yaw, 0.0f));
+
 
 	_transform.Rotate(glm::quat(glm::vec3(-_pitch, -_yaw, 0.0f)));
 }

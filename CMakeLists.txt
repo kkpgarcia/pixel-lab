@@ -50,6 +50,9 @@ target_link_libraries(pixel_lab PRIVATE yaml-cpp::yaml-cpp)
 
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(pixel_lab PRIVATE assimp::assimp)
+#
+#include_directories(assimp "vendor/assimp/include")
+#target_link_libraries(pixel_lab PRIVATE "${CMAKE_SOURCE_DIR}/vendor/assimp/Debug/assimp-vc143-mtd.dll")
 
 include_directories("vendor/ImGuizmo")
 set(IMGUIZMO_SOURCES

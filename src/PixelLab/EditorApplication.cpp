@@ -15,6 +15,14 @@ EditorApplication::~EditorApplication()
     delete m_RenderAPI;
     delete m_Camera;
     delete m_Diffuse;
+    delete m_Texture;
+    delete m_FrameBuffer;
+    delete m_Mesh;
+    delete m_ScreenMesh;
+    delete m_ScreenMaterial;
+    delete m_Model;
+    m_ModelImporter.release();
+
 }
 
 void EditorApplication::Init()
@@ -108,7 +116,7 @@ void EditorApplication::Init()
     TextureSettings settings;
 
     stbi_set_flip_vertically_on_load(true);
-    auto textureData = stbi_load("assets/sample_texture.png", &settings.Width, &settings.Height, &settings.Channels, 0);
+    auto textureData = stbi_load("assets/tests/sample_texture.png", &settings.Width, &settings.Height, &settings.Channels, 0);
 
     if (textureData == nullptr)
     {
@@ -148,7 +156,16 @@ void EditorApplication::Init()
     }});
 
     m_ScreenMesh = Mesh::Generate(Primitive::Quad);
-    m_Mesh = Mesh::Generate(Primitive::Quad);
+    // m_Mesh = Mesh::Generate(Primitive::Cube);
+    ModelImporter importer;
+    m_Model = static_cast<Model*>(importer.Import("assets/tests/monkey.obj"));
+
+    //m_Model->LoadModel("assets/tests/cube.glb");
+    // m_Model->LoadModel("assets/models/backpack/scene.gltf");
+    // m_Model->LoadModel("assets/tests/sphere.glb");
+    // m_Model->AddMesh(m_Mesh);
+
+    //std::cout << "Loaded Model: " << "assets/tests/sphere.glb" << std::endl;
 
     // ImGuiStyle& style = ImGui::GetStyle();
     // style.ScaleAllSizes(2);
@@ -182,7 +199,14 @@ void EditorApplication::OnRender()
         m_Diffuse->SetInt("u_Texture", 0);
     }
 
-    m_RenderAPI->DrawIndexed(m_Mesh, m_Diffuse->GetShader());
+    auto meshes = m_Model->GetMeshes();
+
+    for (auto& mesh : meshes)
+    {
+        m_RenderAPI->DrawIndexed(mesh, m_Diffuse->GetShader());
+    }
+
+    //m_RenderAPI->DrawIndexed(m_Mesh, m_Diffuse->GetShader());
     m_RenderAPI->EndFrame();
 
     m_FrameBuffer->Unbind();
@@ -245,6 +269,8 @@ void EditorApplication::OnEvent(Event& event)
     PROFILE_SCOPE("EditorApplication::OnEvent()");
 
     Application::OnEvent(event);
+
+    m_Camera->OnEvent(event);
 
     EventDispatcher dispatcher(event);
     dispatcher.Dispatch<KeyDownEvent>(BIND_EVENT(OnKeyDownHandler));

@@ -37,6 +37,8 @@ private:
     Mesh* m_Mesh = nullptr;
     Mesh* m_ScreenMesh = nullptr;
     Material* m_ScreenMaterial = nullptr;
+    Model* m_Model = nullptr;
+    std::unique_ptr<ModelImporter> m_ModelImporter;
 };
 
 #endif //EDITORAPPLICATIONSLIM_H
