@@ -156,16 +156,9 @@ void EditorApplication::Init()
     }});
 
     m_ScreenMesh = Mesh::Generate(Primitive::Quad);
-    // m_Mesh = Mesh::Generate(Primitive::Cube);
+
     ModelImporter importer;
-    m_Model = static_cast<Model*>(importer.Import("assets/tests/monkey.obj"));
-
-    //m_Model->LoadModel("assets/tests/cube.glb");
-    // m_Model->LoadModel("assets/models/backpack/scene.gltf");
-    // m_Model->LoadModel("assets/tests/sphere.glb");
-    // m_Model->AddMesh(m_Mesh);
-
-    //std::cout << "Loaded Model: " << "assets/tests/sphere.glb" << std::endl;
+    m_Model = static_cast<Model*>(importer.Import("assets/tests/test1.gltf"));
 
     // ImGuiStyle& style = ImGui::GetStyle();
     // style.ScaleAllSizes(2);

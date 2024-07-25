@@ -65,7 +65,20 @@ target_link_libraries(pixel_lab PRIVATE imguizmo)
 add_library(stb_image "vendor/stb_image.cpp")
 target_link_libraries(pixel_lab PRIVATE stb_image)
 
+# Locate the Mono library
+find_library(MONO_LIBRARY NAMES mono-2.0-sgen mono-2.0-sgen.dll mono-2.0-sgen.lib
+        PATHS "C:/Program Files/Mono/lib"
+        NO_DEFAULT_PATH)
+message(STATUS "Mono library: ${MONO_LIBRARY}")
+
+# Link the Mono library
+target_link_libraries(pixel_lab PRIVATE ${MONO_LIBRARY})
+# Include the Mono headers
+target_include_directories(pixel_lab PRIVATE "C:/Program Files/Mono/include/mono-2.0")
 target_link_libraries(pixel_lab PRIVATE d3d11)
+
+find_package(RapidJSON CONFIG REQUIRED)
+target_link_libraries(pixel_lab PRIVATE rapidjson)
 
 add_custom_command(TARGET pixel_lab POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
