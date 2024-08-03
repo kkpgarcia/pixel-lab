@@ -39,6 +39,9 @@ private:
     Material* m_ScreenMaterial = nullptr;
     Model* m_Model = nullptr;
     std::unique_ptr<ModelImporter> m_ModelImporter;
+
+    Entity* m_DirectionalLight = nullptr;
+    Entity* m_PointLights[4] = { nullptr, nullptr, nullptr, nullptr };
 };
 
 #endif //EDITORAPPLICATIONSLIM_H

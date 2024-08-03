@@ -54,11 +54,13 @@ void EditorApplication::Init()
 
     out vec2 v_TexCoord;
     out vec3 v_Normal;
+    out vec3 v_FragPos;
 
     void main()
     {
         v_TexCoord = a_TexCoord;
         v_Normal = a_Normal;
+        v_FragPos = vec3(u_Model * vec4(a_Position, 1.0));
         gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);
     }
     )";
@@ -66,16 +68,54 @@ void EditorApplication::Init()
     std::string diffuseFragmentShader = R"(
     #version 330 core
 
+    struct Light {
+        vec3 position;
+        vec3 color;
+    };
+
     uniform sampler2D u_Texture;
+    uniform Light u_DirectionalLight;
+    uniform Light u_PointLights[4];
+    uniform vec3 u_ViewPos;
 
     in vec2 v_TexCoord;
     in vec3 v_Normal;
+    in vec3 v_FragPos;
 
     out vec4 FragColor;
 
     void main()
     {
-        FragColor = texture(u_Texture, v_TexCoord);
+        // Ambient
+        float ambientStrength = 0.1;
+        vec3 ambient = ambientStrength * u_DirectionalLight.color;
+
+        // Diffuse
+        vec3 norm = normalize(v_Normal);
+        vec3 lightDir = normalize(u_DirectionalLight.position - v_FragPos);
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = diff * u_DirectionalLight.color;
+
+        // Specular
+        float specularStrength = 0.5;
+        vec3 viewDir = normalize(u_ViewPos - v_FragPos);
+        vec3 reflectDir = reflect(-lightDir, norm);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0); // Ensure the exponent is a float
+        vec3 specular = specularStrength * spec * u_DirectionalLight.color;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            vec3 lightDir = normalize(u_PointLights[i].position - v_FragPos);
+            diff = max(dot(norm, lightDir), 0.0);
+            diffuse += diff * u_PointLights[i].color;
+
+            vec3 pointReflectDir = reflect(-lightDir, norm);
+            float pointSpec = pow(max(dot(viewDir, pointReflectDir), 0.0), 32.0);
+            specular += specularStrength * pointSpec * u_PointLights[i].color;
+        }
+
+        vec3 result = (ambient + diffuse + specular) * texture(u_Texture, v_TexCoord).rgb;
+        FragColor = vec4(result, 1.0);
     }
     )";
 
@@ -158,7 +198,33 @@ void EditorApplication::Init()
     m_ScreenMesh = Mesh::Generate(Primitive::Quad);
 
     ModelImporter importer;
-    m_Model = static_cast<Model*>(importer.Import("assets/tests/test1.gltf"));
+    m_Model = static_cast<Model*>(importer.Import("assets/tests/test1.obj"));
+
+    m_DirectionalLight = new Entity("Driectional Light");
+    auto light = m_DirectionalLight->AddComponent<DirectionalLight>();
+    light->SetDirection(glm::vec3(0.0f, -1.0f, 0.0f));
+
+    for (int i = 0; i < 4; ++i)
+    {
+        auto entity = new Entity("Point Light " + std::to_string(i));
+        m_PointLights[i] = entity;
+        auto pointLight = entity->AddComponent<PointLight>();
+
+        if (i == 0)
+            pointLight->SetColor(glm::vec3(0.0f, 0.25f, 0.0f));
+        else if (i == 1)
+            pointLight->SetColor(glm::vec3(0.0f, 0.0f, 0.25f));
+        else if (i == 2)
+            pointLight->SetColor(glm::vec3(0.25f, 0.25f, 0.0f));
+        else if (i == 3)
+            pointLight->SetColor(glm::vec3(0.25f, 0.0f, 0.0f));
+
+        float x = cos(i * 90.0f);
+        float z = sin(i * 90.0f);
+
+        auto transform = entity->GetComponent<Transform>();
+        transform->Translate(glm::vec3(x * 100.0f, 0.0f, z * 100.0f));
+    }
 
     // ImGuiStyle& style = ImGui::GetStyle();
     // style.ScaleAllSizes(2);
@@ -167,6 +233,16 @@ void EditorApplication::Init()
 void EditorApplication::OnUpdate()
 {
     m_Camera->OnUpdate();
+
+    //Update the directional light
+    auto light = m_DirectionalLight->GetComponent<DirectionalLight>();
+
+    //Rotate the light for testing
+    static float angle = 0.0f;
+    angle += 1.0f * Time::GetDeltaTime();
+
+    glm::vec3 direction = glm::vec3(cos(angle), 0.0f, sin(angle));
+    light->SetDirection(direction);
 }
 
 void EditorApplication::OnRender()
@@ -181,10 +257,28 @@ void EditorApplication::OnRender()
     auto aspectRatio = static_cast<float>(m_AppSettings.Width) / static_cast<float>(m_AppSettings.Height);
     auto projection = m_Camera->GetProjection(aspectRatio); //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 100.0f);
 
+    //Matrix properties
     m_Diffuse->Use();
     m_Diffuse->SetMat4("u_Model", model);
     m_Diffuse->SetMat4("u_View", view);
     m_Diffuse->SetMat4("u_Projection", projection);
+
+    //Directional Light Properties
+    auto directionalLight = m_DirectionalLight->GetComponent<DirectionalLight>();
+    m_Diffuse->SetVec3("u_DirectionalLight.position", directionalLight->GetDirection());
+    m_Diffuse->SetVec3("u_DirectionalLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
+
+    //Point Light Properties
+    for (int i = 0; i < 4; ++i)
+    {
+        auto pointLight = m_PointLights[i]->GetComponent<PointLight>();
+        auto transform = m_PointLights[i]->GetComponent<Transform>();
+        m_Diffuse->SetVec3("u_PointLights[" + std::to_string(i) + "].position", transform->GetPosition());
+        m_Diffuse->SetVec3("u_PointLights[" + std::to_string(i) + "].color", pointLight->GetColor());
+    }
+
+    //View Position
+    m_Diffuse->SetVec3("u_ViewPos", m_Camera->GetTransform()->GetPosition());
 
     if (m_Texture != nullptr)
     {
