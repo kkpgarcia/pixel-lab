@@ -37,11 +37,16 @@ private:
     Mesh* m_Mesh = nullptr;
     Mesh* m_ScreenMesh = nullptr;
     Material* m_ScreenMaterial = nullptr;
+    std::vector<Model*> m_Models;
     Model* m_Model = nullptr;
+    Model* m_Floor = nullptr;
     std::unique_ptr<ModelImporter> m_ModelImporter;
-
     Entity* m_DirectionalLight = nullptr;
     Entity* m_PointLights[4] = { nullptr, nullptr, nullptr, nullptr };
+    FrameBuffer* m_ShadowMap = nullptr;
+    Material* m_ShadowMaterial = nullptr;
+
+    void Render(Model* model, Material* material, const glm::mat4& transform, const glm::mat4& view, const glm::mat4& projection);
 };
 
 #endif //EDITORAPPLICATIONSLIM_H
