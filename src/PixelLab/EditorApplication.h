@@ -8,6 +8,7 @@
 #include "EditorCamera.h"
 #include "PixelEngine.h"
 #include "ProfilerUI.h"
+#include "EnvironmentSettingsPanel.h"
 
 class EditorApplication : public Application
 {
@@ -28,6 +29,7 @@ private:
     RenderAPI* m_RenderAPI = nullptr;
 
     ProfilerUI m_ProfilerUI;
+    EnvironmentSettingsPanel m_EnvironmentSettingsPanel;
 
     //Temporary
     EditorCamera* m_Camera = nullptr;
@@ -42,10 +44,12 @@ private:
     Model* m_Floor = nullptr;
     std::unique_ptr<ModelImporter> m_ModelImporter;
     Entity* m_DirectionalLight = nullptr;
-    Entity* m_PointLights[4] = { nullptr, nullptr, nullptr, nullptr };
+    Entity* m_PointLights[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
     FrameBuffer* m_ShadowMap = nullptr;
     Material* m_ShadowMaterial = nullptr;
-
+    FrameBuffer* m_PointLightFrameBuffer = nullptr;
+    Material* m_PointLightMaterial = nullptr;
+    Material* m_GizmoMaterial = nullptr;
     void Render(Model* model, Material* material, const glm::mat4& transform, const glm::mat4& view, const glm::mat4& projection);
 };
 

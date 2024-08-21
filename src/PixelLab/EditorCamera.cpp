@@ -7,16 +7,24 @@
 
 void EditorCamera::OnUpdate()
 {
-    float speed = 1 * Time::GetDeltaTime();
+    float speed = 5 * Time::GetDeltaTime();
+
+    auto forward = GetTransform()->GetForward();
 
     if (Input::OnKeyDown(KeyCode::W))
-        GetTransform()->Translate(glm::vec3(0, 0, -speed));
+    GetTransform()->Translate(-speed * forward);
     if (Input::OnKeyDown(KeyCode::A))
-        GetTransform()->Translate(glm::vec3(-speed, 0, 0));
+        GetTransform()->Translate(-speed * GetTransform()->GetRight());
     if (Input::OnKeyDown(KeyCode::S))
-        GetTransform()->Translate(glm::vec3(0, 0, speed));
+        GetTransform()->Translate(speed * forward);
     if (Input::OnKeyDown(KeyCode::D))
-        GetTransform()->Translate(glm::vec3(speed, 0, 0));
+        GetTransform()->Translate(speed * GetTransform()->GetRight());
+
+    if (Input::OnKeyDown(KeyCode::Q))
+        GetTransform()->Translate(-speed * GetTransform()->GetUp());
+
+    if (Input::OnKeyDown(KeyCode::E))
+        GetTransform()->Translate(speed * GetTransform()->GetUp());
 
     glm::vec2 currentMousePosition = Input::GetMousePosition();
     glm::vec2 delta = (currentMousePosition - m_LastMousePosition) * Time::GetDeltaTime();

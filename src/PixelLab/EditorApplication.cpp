@@ -41,170 +41,14 @@ void EditorApplication::Init()
 
     m_RenderAPI->Init();
 
-    std::string diffuseVertexShader = R"(
-    #version 330 core
+    TextImporter textImporter;
 
-    layout(location = 0) in vec3 a_Position;
-    layout(location = 1) in vec3 a_Normal;
-    layout(location = 2) in vec2 a_TexCoord;
-
-    uniform mat4 u_Model;
-    uniform mat4 u_View;
-    uniform mat4 u_Projection;
-
-    out vec2 v_TexCoord;
-    out vec3 v_Normal;
-    out vec3 v_FragPos;
-
-    void main()
-    {
-        v_TexCoord = a_TexCoord;
-        v_Normal = a_Normal;
-        v_FragPos = vec3(u_Model * vec4(a_Position, 1.0));
-        gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);
-    }
-    )";
-
-    std::string diffuseFragmentShader = R"(
-    #version 330 core
-
-    struct Light {
-        vec3 position;
-        vec3 color;
-    };
-
-    uniform sampler2D u_Texture;
-    uniform Light u_DirectionalLight;
-    uniform Light u_PointLights[4];
-    uniform vec3 u_ViewPos;
-
-    uniform sampler2D u_ShadowMap;
-    uniform mat4 u_LightSpaceMatrix;
-
-    in vec2 v_TexCoord;
-    in vec3 v_Normal;
-    in vec3 v_FragPos;
-
-    out vec4 FragColor;
-
-    float CalcShadowFactor(vec4 fragPosLightSpace)
-    {
-        vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-        projCoords = projCoords * 0.5 + 0.5;
-        float closestDepth = texture(u_ShadowMap, projCoords.xy).r;
-        float currentDepth = projCoords.z;
-        float bias = 0.005;
-        float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
-        return shadow;
-    }
-
-    void main()
-    {
-        // Ambient
-        float ambientStrength = 0.1;
-        vec3 ambient = ambientStrength * u_DirectionalLight.color;
-
-        // Diffuse
-        vec3 norm = normalize(v_Normal);
-        vec3 lightDir = normalize(u_DirectionalLight.position - v_FragPos);
-        float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * u_DirectionalLight.color;
-
-        // Specular
-        float specularStrength = 0.5;
-        vec3 viewDir = normalize(u_ViewPos - v_FragPos);
-        vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0); // Ensure the exponent is a float
-        vec3 specular = specularStrength * spec * u_DirectionalLight.color;
-
-        for (int i = 0; i < 4; ++i)
-        {
-            vec3 lightDir = normalize(u_PointLights[i].position - v_FragPos);
-            diff = max(dot(norm, lightDir), 0.0);
-            diffuse += diff * u_PointLights[i].color;
-
-            vec3 pointReflectDir = reflect(-lightDir, norm);
-            float pointSpec = pow(max(dot(viewDir, pointReflectDir), 0.0), 32.0);
-            specular += specularStrength * pointSpec * u_PointLights[i].color;
-        }
-
-        //Calculate shadow factor
-        vec4 fragPosLightSpace = u_LightSpaceMatrix * vec4(v_FragPos, 1.0);
-        float shadow = CalcShadowFactor(fragPosLightSpace);
-
-        vec3 result = (ambient + (1.0 - shadow) * (diffuse + specular)) * texture(u_Texture, v_TexCoord).rgb;
-        FragColor = vec4(result, 1.0);
-    }
-    )";
-
-    std::string screenVertexShader = R"(
-    #version 330 core
-
-    layout(location = 0) in vec3 a_Position;
-    layout(location = 1) in vec3 a_Normal;
-    layout(location = 2) in vec2 a_TexCoord;
-
-    out vec2 v_TexCoord;
-    out vec3 v_Normal;
-
-    void main()
-    {
-        v_TexCoord = a_TexCoord;
-        v_Normal = a_Normal;
-        gl_Position = vec4(a_Position, 1.0);
-    }
-    )";
-
-    std::string screenFragmentShader = R"(
-    #version 330 core
-
-    uniform sampler2D u_Texture;
-
-    in vec2 v_TexCoord;
-    in vec3 v_Normal;
-
-    out vec4 FragColor;
-
-    void main()
-    {
-        FragColor = texture(u_Texture, v_TexCoord);
-    }
-    )";
-
-    std::string depthFragmentShader = R"(
-    #version 330 core
-
-    in vec2 v_TexCoord;
-
-    uniform sampler2D u_Texture;
-
-    out vec4 FragColor;
-
-    void main()
-    {
-        float depthValue = texture(u_Texture, v_TexCoord).r;
-        FragColor = vec4(vec3(depthValue), 1.0);
-    }
-    )";
-
-    std::string shadwoVertexShader = R"(
-    #version 330 core
-
-    layout(location = 0) in vec3 a_Position;
-
-    uniform mat4 u_Model;
-    uniform mat4 u_LightSpaceMatrix;
-
-    void main()
-    {
-        gl_Position = u_LightSpaceMatrix * u_Model * vec4(a_Position, 1.0);
-    }
-    )";
-
-    std::string shadowFragmentShader = R"(
-    #version 330 core
-    void main() {}
-    )";
+    auto diffuseVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Diffuse.vs"))->GetText();
+    auto diffuseFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Diffuse.fs"))->GetText();
+    auto screenVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Screen.vs"))->GetText();
+    auto screenFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Screen.fs"))->GetText();
+    auto shadwoVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Shadow.vs"))->GetText();
+    auto shadowFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Shadow.fs"))->GetText();
 
     TextureSettings settings;
 
@@ -237,6 +81,7 @@ void EditorApplication::Init()
             FrameBufferAttachmentSettings {
             FrameBufferAttachmentType::Texture,
             TextureSettings {
+                TextureType::Texture2D,
                 m_AppSettings.Width,
                 m_AppSettings.Height,
                 4,
@@ -249,6 +94,7 @@ void EditorApplication::Init()
             FrameBufferAttachmentSettings {
                 FrameBufferAttachmentType::Texture,
                 TextureSettings {
+                    TextureType::Texture2D,
                     m_AppSettings.Width,
                     m_AppSettings.Height,
                     1,
@@ -264,30 +110,25 @@ void EditorApplication::Init()
 
     ModelImporter importer;
     m_Model = static_cast<Model*>(importer.Import("assets/tests/monkey.obj"));
-    m_Floor = static_cast<Model*>(importer.Import("assets/tests/floor.obj"));
+    m_Floor = static_cast<Model*>(importer.Import("assets/tests/room.obj"));
 
     m_Models.push_back(m_Model);
     m_Models.push_back(m_Floor);
 
     m_DirectionalLight = new Entity("Driectional Light");
     auto light = m_DirectionalLight->AddComponent<DirectionalLight>();
-    m_DirectionalLight->GetComponent<Transform>()->Translate(glm::vec3(-2.0f, 4.0f, -1.0f));
-    light->SetDirection(glm::vec3(0.0f, 0.0f, 0.0f));
+    m_DirectionalLight->GetComponent<Transform>()->Translate(glm::vec3(-0.0f, -10.0f, -0.0f));
+    light->SetDirection(glm::vec3(0.3f, -1.0f, 0.0f));
 
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 6; ++i)
     {
         auto entity = new Entity("Point Light " + std::to_string(i));
         m_PointLights[i] = entity;
         auto pointLight = entity->AddComponent<PointLight>();
+        auto pointLightSettings = m_EnvironmentSettingsPanel.GetPointLightColor(i);
 
-        if (i == 0)
-            pointLight->SetColor(glm::vec3(0.0f, 0.25f, 0.0f));
-        else if (i == 1)
-            pointLight->SetColor(glm::vec3(0.0f, 0.0f, 0.25f));
-        else if (i == 2)
-            pointLight->SetColor(glm::vec3(0.25f, 0.25f, 0.0f));
-        else if (i == 3)
-            pointLight->SetColor(glm::vec3(0.25f, 0.0f, 0.0f));
+        auto pointLightColor = pointLightSettings.Enabled ? pointLightSettings.Color : glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        pointLight->SetColor(pointLightColor);
 
         float x = cos(i * 90.0f);
         float z = sin(i * 90.0f);
@@ -304,6 +145,7 @@ void EditorApplication::Init()
             FrameBufferAttachmentSettings {
                 FrameBufferAttachmentType::Texture,
                 TextureSettings {
+                    TextureType::Texture2D,
                     1024,
                     1024,
                     1,
@@ -318,8 +160,32 @@ void EditorApplication::Init()
 
     m_ShadowMaterial = new Material(Shader::Create(shadwoVertexShader.c_str(), shadowFragmentShader.c_str()));
 
+    // m_PointLightFrameBuffer = FrameBuffer::Create({
+    //     1024,
+    //     1024,
+    //     {
+    //         FrameBufferAttachmentSettings {
+    //             FrameBufferAttachmentType::CubeMap,
+    //             TextureSettings {
+    //                 TextureType::Cubemap,
+    //                 1024,
+    //                 1024,
+    //                 1,
+    //                 TextureFilter::Nearest,
+    //                 TextureWrap::ClampToEdge,
+    //                 TextureFormat::Depth,
+    //                 false
+    //             }
+    //         }
+    //     }
+    // });
+
+    //m_PointLightMaterial = new Material(Shader::Create(pointLightVertexShader.c_str(), pointLightFragmentShader.c_str(), pointLightGeometryShader.c_str()));
+
     //Debugging depth
     //m_DepthMaterial = new Material(Shader::Create(screenVertexShader.c_str(), depthFragmentShader.c_str()));
+
+    //m_GizmoMaterial = new Material(Shader::Create(gizmoVertexShader.c_str(), gizmoFragmentShader.c_str()));
 
     // ImGuiStyle& style = ImGui::GetStyle();
     // style.ScaleAllSizes(2);
@@ -329,20 +195,45 @@ void EditorApplication::OnUpdate()
 {
     m_Camera->OnUpdate();
 
-    //Update the directional light
     auto light = m_DirectionalLight->GetComponent<DirectionalLight>();
+    if (m_EnvironmentSettingsPanel.IsRotateDirectionalLight())
+    {
+        static float angle = 0.0f;
+        angle += m_EnvironmentSettingsPanel.GetDirectionalLightRotation() * Time::GetDeltaTime();
 
-    //Rotate the light for testing
-    static float angle = 0.0f;
-    angle += 1.0f * Time::GetDeltaTime();
+        glm::vec3 direction = glm::vec3(cos(angle), 10.0f, sin(angle));
+        light->SetDirection(glm::normalize(-direction));
+    }
 
-    glm::vec3 direction = glm::vec3(cos(angle), 0.0f, sin(angle));
-    light->SetDirection(direction);
+    auto direcitonalLightColor = m_EnvironmentSettingsPanel.IsDirectionalLightEnabled() ?
+        m_EnvironmentSettingsPanel.GetDirectionalLightColor() : glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    light->SetColor(direcitonalLightColor);
+
+    //Rotate all pointlights around the center point 0, 0, 0
+    for (int i = 0; i < 6; ++i)
+    {
+        auto transform = m_PointLights[i]->GetComponent<Transform>();
+        auto position = transform->GetPosition();
+        static float angle = 0.0f;
+        angle += i * m_EnvironmentSettingsPanel.GetPointLightRotation() * Time::GetDeltaTime();
+        float x = cos(angle) * 100.0f;
+        float z = sin(angle) * 100.0f;
+        transform->SetPosition(glm::vec3(x, position.y, z));
+
+        // Set color as well
+        auto pointLight = m_PointLights[i]->GetComponent<PointLight>();
+        auto pointLightSettings = m_EnvironmentSettingsPanel.GetPointLightColor(i);
+        auto pointLightColor = pointLightSettings.Enabled ?
+            pointLightSettings.Color : glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+        pointLight->SetColor(pointLightColor);
+    }
 }
 
 void EditorApplication::OnRender()
 {
     Application::OnRender();
+
     //Render the scene to shadow map
     m_ShadowMap->Bind();
     m_RenderAPI->SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -354,31 +245,69 @@ void EditorApplication::OnRender()
     auto light = m_DirectionalLight->GetComponent<DirectionalLight>();
     auto lightTransform = m_DirectionalLight->GetComponent<Transform>();
 
-    auto lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 20.0f);
+    auto lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 30.0f);
     auto lightView = glm::lookAt(lightTransform->GetPosition(),
-                                  light->GetDirection(),
-                                  glm::vec3( 0.0f, 1.0f,  0.0f));
+                             lightTransform->GetPosition() + light->GetDirection(),
+                             glm::vec3(0.0f, 1.0f, 0.0f));
 
-    auto lightSpaceMatrix = lightProjection * lightView;
+
+    auto lightSpaceMatrix = lightProjection * lightView * lightTransform->GetModelMatrix();
+
 
     for (auto& model : m_Models)
     {
-        if (model->GetName() == "floor.obj")
-            continue;
+        // if (model->GetName() == "floor.obj")
+        //     continue;
         m_ShadowMaterial->Use();
-        m_ShadowMaterial->SetMat4("u_Model", glm::mat4(1.0f));
         m_ShadowMaterial->SetMat4("u_LightSpaceMatrix", lightSpaceMatrix);
 
         auto meshes = model->GetMeshes();
 
         for (auto& mesh : meshes)
         {
+            auto transform = model->GetName() == "floor.obj" ? translate(glm::mat4(1.0), glm::vec3(0, -1.5, 0)) : glm::mat4(1.0f);
+            m_ShadowMaterial->SetMat4("u_Model", transform);
             m_RenderAPI->DrawIndexed(mesh, m_ShadowMaterial->GetShader());
         }
     }
 
     m_RenderAPI->EndFrame();
     m_ShadowMap->Unbind();
+
+    //Render scene to cubemap
+    // m_PointLightFrameBuffer->Bind();
+    // m_RenderAPI->SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+    // m_RenderAPI->Clear(ClearFlags::Color | ClearFlags::Depth);
+    // m_RenderAPI->BeginFrame();
+    // m_RenderAPI->SetViewport(0, 0, 1024, 1024);
+    //
+    // auto pointLightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 25.0f);
+    // m_PointLightMaterial->Use();
+    // for (int i = 0; i < 4; ++i)
+    // {
+    //     auto transform = m_PointLights[i]->GetComponent<Transform>();
+    //     auto lightPos = transform->GetPosition();
+    //     auto pointLightView = glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+    //     auto pointLightSpaceMatrix = pointLightProjection * pointLightView;
+    //     m_PointLightMaterial->SetMat4("u_ShadowMatrices[" + std::to_string(i) + "]", pointLightSpaceMatrix);
+    //     m_PointLightMaterial->SetMat4("u_Model", transform->GetModelMatrix());
+    //     m_PointLightMaterial->SetVec3("u_LightPos", lightPos);
+    // }
+    //
+    // m_PointLightMaterial->SetFloat("u_FarPlane", 25.0f);
+    //
+    // for (auto& model : m_Models)
+    // {
+    //     auto meshes = model->GetMeshes();
+    //
+    //     for (auto& mesh : meshes)
+    //     {
+    //         m_RenderAPI->DrawIndexed(mesh, m_PointLightMaterial->GetShader());
+    //     }
+    // }
+    //
+    // m_RenderAPI->EndFrame();
+    // m_ShadowMap->Unbind();
 
     //Render the scene to the framebuffer
     m_FrameBuffer->Bind();
@@ -388,6 +317,14 @@ void EditorApplication::OnRender()
     m_RenderAPI->BeginFrame();
 
     auto aspectRatio = static_cast<float>(m_AppSettings.Width) / static_cast<float>(m_AppSettings.Height);
+
+    //Gizmo Drawing
+    // m_GizmoMaterial->Use();
+    // m_GizmoMaterial->SetMat4("u_Model",  m_DirectionalLight->GetComponent<Transform>()->GetModelMatrix());
+    // m_GizmoMaterial->SetMat4("u_View", m_Camera->GetView());
+    // m_GizmoMaterial->SetMat4("u_Projection", m_Camera->GetProjection(aspectRatio));
+    // m_GizmoMaterial->SetVec4("u_Color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    // m_DirectionalLight->GetComponent<DirectionalLight>()->DrawGizmo();
 
     for (auto& model : m_Models)
     {
@@ -401,10 +338,10 @@ void EditorApplication::OnRender()
         //Directional Light Properties
         auto directionalLight = m_DirectionalLight->GetComponent<DirectionalLight>();
         m_Diffuse->SetVec3("u_DirectionalLight.position", directionalLight->GetDirection());
-        m_Diffuse->SetVec3("u_DirectionalLight.color", glm::vec3(1.0f, 1.0f, 1.0f));
+        m_Diffuse->SetVec3("u_DirectionalLight.color", directionalLight->GetColor());
 
         //Point Light Properties
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 6; ++i)
         {
             auto pointLight = m_PointLights[i]->GetComponent<PointLight>();
             auto transform = m_PointLights[i]->GetComponent<Transform>();
@@ -443,7 +380,7 @@ void EditorApplication::OnRender()
     m_RenderAPI->BeginFrame();
     m_ScreenMaterial->Use();
     m_FrameBuffer->GetColorAttachment(0)->Bind(0);
-    //m_ShadowMap->GetDepthAttachment(0)->Bind();
+    //m_ShadowMap->GetDepthAttachment(0)->Bind(0);
     m_ScreenMaterial->SetInt("u_Texture", 0);
     m_RenderAPI->DrawIndexed(m_ScreenMesh, m_ScreenMaterial->GetShader());
     m_RenderAPI->EndFrame();
@@ -495,6 +432,7 @@ void EditorApplication::OnGUI()
     }
 
     m_ProfilerUI.OnGUI();
+    m_EnvironmentSettingsPanel.OnGUI();
 }
 
 void EditorApplication::OnEvent(Event& event)
