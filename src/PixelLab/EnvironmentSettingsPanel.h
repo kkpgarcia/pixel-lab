@@ -42,14 +42,14 @@ private:
 
     glm::vec4 m_DirectionalLightColor = {1.0f, 1.0f, 1.0f, 1.0f};
 
-    int m_PointLightCount = 6;
-    PointLightSettings m_PointLightColors[6] = {
+    int m_PointLightCount = 1;
+    PointLightSettings m_PointLightColors[1] = {
     {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
-    {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
-    {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
-    {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
-    {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
-    {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+    // {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+    // {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+    // {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+    // {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
+    // {true, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)},
     };
 };
 

@@ -7,11 +7,14 @@ struct Light {
 
 uniform sampler2D u_Texture;
 uniform Light u_DirectionalLight;
-uniform Light u_PointLights[6];
+uniform Light u_PointLights[1];
 uniform vec3 u_ViewPos;
 
 uniform sampler2D u_ShadowMap;
 uniform mat4 u_LightSpaceMatrix;
+
+uniform samplerCube u_ShadowCubeMap;
+uniform mat4 u_PointLightSpaceMatrix[1];
 
 in vec2 v_TexCoord;
 in vec3 v_Normal;
@@ -26,6 +29,16 @@ float CalcShadowFactor(vec4 fragPosLightSpace)
     float closestDepth = texture(u_ShadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
     float bias = 0.005;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    return shadow;
+}
+
+float CalcPointLightShadowFactor(vec3 fragPos, vec3 lightPos)
+{
+    vec3 fragToLight = fragPos - lightPos;
+    float closestDepth = texture(u_ShadowCubeMap, fragToLight).r;
+    float currentDepth = length(fragToLight);
+    float bias = 0.05;
     float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     return shadow;
 }
@@ -49,7 +62,7 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0); // Ensure the exponent is a float
     vec3 specular = specularStrength * spec * u_DirectionalLight.color;
 
-    for (int i = 0; i < 6; ++i)
+    for (int i = 0; i < 1; ++i)
     {
         vec3 lightDir = normalize(u_PointLights[i].position - v_FragPos);
         diff = max(dot(norm, lightDir), 0.0);
@@ -58,9 +71,14 @@ void main()
         vec3 pointReflectDir = reflect(-lightDir, norm);
         float pointSpec = pow(max(dot(viewDir, pointReflectDir), 0.0), 32.0);
         specular += specularStrength * pointSpec * u_PointLights[i].color;
+
+        // Shadow factor for point lights
+        float pointShadow = CalcPointLightShadowFactor(v_FragPos, u_PointLights[i].position);
+        diffuse *= 1.0 - pointShadow;
+        specular *= 1.0 - pointShadow;
     }
 
-    //Calculate shadow factor
+    // Calculate shadow factor for directional light
     vec4 fragPosLightSpace = u_LightSpaceMatrix * vec4(v_FragPos, 1.0);
     float shadow = CalcShadowFactor(fragPosLightSpace);
 

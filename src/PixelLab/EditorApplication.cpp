@@ -43,12 +43,15 @@ void EditorApplication::Init()
 
     TextImporter textImporter;
 
-    auto diffuseVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Diffuse.vs"))->GetText();
-    auto diffuseFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Diffuse.fs"))->GetText();
-    auto screenVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Screen.vs"))->GetText();
-    auto screenFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Screen.fs"))->GetText();
-    auto shadwoVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Shadow.vs"))->GetText();
-    auto shadowFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Shadow.fs"))->GetText();
+    auto diffuseVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Diffuse.vert"))->GetText();
+    auto diffuseFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Diffuse2.frag"))->GetText();
+    auto screenVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Screen.vert"))->GetText();
+    auto screenFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Screen.frag"))->GetText();
+    auto shadwoVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Shadow.vert"))->GetText();
+    auto shadowFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/Shadow.frag"))->GetText();
+    auto pointLightVertexShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/PointLight.vert"))->GetText();
+    auto pointLightFragmentShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/PointLight.frag"))->GetText();
+    auto pointLightGeometryShader = static_cast<TextAsset*>(textImporter.Import("assets/shaders/PointLight.geom"))->GetText();
 
     TextureSettings settings;
 
@@ -120,7 +123,7 @@ void EditorApplication::Init()
     m_DirectionalLight->GetComponent<Transform>()->Translate(glm::vec3(-0.0f, -10.0f, -0.0f));
     light->SetDirection(glm::vec3(0.3f, -1.0f, 0.0f));
 
-    for (int i = 0; i < 6; ++i)
+    for (int i = 0; i < 1; ++i)
     {
         auto entity = new Entity("Point Light " + std::to_string(i));
         m_PointLights[i] = entity;
@@ -160,27 +163,27 @@ void EditorApplication::Init()
 
     m_ShadowMaterial = new Material(Shader::Create(shadwoVertexShader.c_str(), shadowFragmentShader.c_str()));
 
-    // m_PointLightFrameBuffer = FrameBuffer::Create({
-    //     1024,
-    //     1024,
-    //     {
-    //         FrameBufferAttachmentSettings {
-    //             FrameBufferAttachmentType::CubeMap,
-    //             TextureSettings {
-    //                 TextureType::Cubemap,
-    //                 1024,
-    //                 1024,
-    //                 1,
-    //                 TextureFilter::Nearest,
-    //                 TextureWrap::ClampToEdge,
-    //                 TextureFormat::Depth,
-    //                 false
-    //             }
-    //         }
-    //     }
-    // });
+    m_PointLightFrameBuffer = FrameBuffer::Create({
+        1024,
+        1024,
+        {
+            FrameBufferAttachmentSettings {
+                FrameBufferAttachmentType::CubeMap,
+                TextureSettings {
+                    TextureType::Cubemap,
+                    1024,
+                    1024,
+                    1,
+                    TextureFilter::Nearest,
+                    TextureWrap::ClampToEdge,
+                    TextureFormat::Depth,
+                    false
+                }
+            }
+        }
+    });
 
-    //m_PointLightMaterial = new Material(Shader::Create(pointLightVertexShader.c_str(), pointLightFragmentShader.c_str(), pointLightGeometryShader.c_str()));
+    m_PointLightMaterial = new Material(Shader::Create(pointLightVertexShader.c_str(), pointLightFragmentShader.c_str(), pointLightGeometryShader.c_str()));
 
     //Debugging depth
     //m_DepthMaterial = new Material(Shader::Create(screenVertexShader.c_str(), depthFragmentShader.c_str()));
@@ -210,7 +213,7 @@ void EditorApplication::OnUpdate()
     light->SetColor(direcitonalLightColor);
 
     //Rotate all pointlights around the center point 0, 0, 0
-    for (int i = 0; i < 6; ++i)
+    for (int i = 0; i < 1; ++i)
     {
         auto transform = m_PointLights[i]->GetComponent<Transform>();
         auto position = transform->GetPosition();
@@ -256,8 +259,6 @@ void EditorApplication::OnRender()
 
     for (auto& model : m_Models)
     {
-        // if (model->GetName() == "floor.obj")
-        //     continue;
         m_ShadowMaterial->Use();
         m_ShadowMaterial->SetMat4("u_LightSpaceMatrix", lightSpaceMatrix);
 
@@ -275,39 +276,39 @@ void EditorApplication::OnRender()
     m_ShadowMap->Unbind();
 
     //Render scene to cubemap
-    // m_PointLightFrameBuffer->Bind();
-    // m_RenderAPI->SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-    // m_RenderAPI->Clear(ClearFlags::Color | ClearFlags::Depth);
-    // m_RenderAPI->BeginFrame();
-    // m_RenderAPI->SetViewport(0, 0, 1024, 1024);
-    //
-    // auto pointLightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 25.0f);
-    // m_PointLightMaterial->Use();
-    // for (int i = 0; i < 4; ++i)
-    // {
-    //     auto transform = m_PointLights[i]->GetComponent<Transform>();
-    //     auto lightPos = transform->GetPosition();
-    //     auto pointLightView = glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-    //     auto pointLightSpaceMatrix = pointLightProjection * pointLightView;
-    //     m_PointLightMaterial->SetMat4("u_ShadowMatrices[" + std::to_string(i) + "]", pointLightSpaceMatrix);
-    //     m_PointLightMaterial->SetMat4("u_Model", transform->GetModelMatrix());
-    //     m_PointLightMaterial->SetVec3("u_LightPos", lightPos);
-    // }
-    //
-    // m_PointLightMaterial->SetFloat("u_FarPlane", 25.0f);
-    //
-    // for (auto& model : m_Models)
-    // {
-    //     auto meshes = model->GetMeshes();
-    //
-    //     for (auto& mesh : meshes)
-    //     {
-    //         m_RenderAPI->DrawIndexed(mesh, m_PointLightMaterial->GetShader());
-    //     }
-    // }
-    //
-    // m_RenderAPI->EndFrame();
-    // m_ShadowMap->Unbind();
+    m_PointLightFrameBuffer->Bind();
+    m_RenderAPI->SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+    m_RenderAPI->Clear(ClearFlags::Color | ClearFlags::Depth);
+    m_RenderAPI->BeginFrame();
+    m_RenderAPI->SetViewport(0, 0, 1024, 1024);
+
+    auto pointLightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 25.0f);
+    m_PointLightMaterial->Use();
+    for (int i = 0; i < 1; ++i)
+    {
+        auto transform = m_PointLights[i]->GetComponent<Transform>();
+        auto lightPos = transform->GetPosition();
+        auto pointLightView = glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        auto pointLightSpaceMatrix = pointLightProjection * pointLightView;
+        m_PointLightMaterial->SetMat4("u_ShadowMatrices[" + std::to_string(i) + "]", pointLightSpaceMatrix);
+        m_PointLightMaterial->SetMat4("u_Model", transform->GetModelMatrix());
+        m_PointLightMaterial->SetVec3("u_LightPos", lightPos);
+    }
+
+    m_PointLightMaterial->SetFloat("u_FarPlane", 25.0f);
+
+    for (auto& model : m_Models)
+    {
+        auto meshes = model->GetMeshes();
+
+        for (auto& mesh : meshes)
+        {
+            m_RenderAPI->DrawIndexed(mesh, m_PointLightMaterial->GetShader());
+        }
+    }
+
+    m_RenderAPI->EndFrame();
+    m_PointLightFrameBuffer->Unbind();
 
     //Render the scene to the framebuffer
     m_FrameBuffer->Bind();
@@ -341,7 +342,7 @@ void EditorApplication::OnRender()
         m_Diffuse->SetVec3("u_DirectionalLight.color", directionalLight->GetColor());
 
         //Point Light Properties
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < 1; ++i)
         {
             auto pointLight = m_PointLights[i]->GetComponent<PointLight>();
             auto transform = m_PointLights[i]->GetComponent<Transform>();
@@ -354,8 +355,12 @@ void EditorApplication::OnRender()
 
         //Shadow map
         m_ShadowMap->GetDepthAttachment(0)->Bind(1);
-        m_Diffuse->SetInt("u_ShadowMap", 1);
-        m_Diffuse->SetMat4("u_LightSpaceMatrix", lightSpaceMatrix);
+        m_Diffuse->SetInt("u_DirectionalLightShadowMap", 1);
+        m_Diffuse->SetMat4("u_DirectionalLightMatrix", lightSpaceMatrix);
+
+        //Point light shadow map
+        m_PointLightFrameBuffer->GetDepthAttachment(0)->Bind(2);
+        m_Diffuse->SetInt("u_PointLightShadowMap", 2);
 
         if (m_Texture != nullptr)
         {
